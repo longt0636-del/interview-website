@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+:root {
+  --navy:       #0B3D5C;
+  --teal:       #1D9E75;
+  --teal-light: #5DCAA5;
+  --mint:       #E1F5EE;
+  --amber:      #EF9F27;
+  --gold-light: #FAC775;
+  --ink:        #2C2C2A;
+  --off-white:  #F4F8F5;
+
+  /* Aurora component color aliases */
+  --white:      #ffffff;
+  --black:      #000000;
+  --transparent: transparent;
+
+  /* Aurora gradient — brand-tuned teal + blue + amber */
+  --aurora-1: #1D9E75;
+  --aurora-2: #5DCAA5;
+  --aurora-3: #60a5fa;
+  --aurora-4: #EF9F27;
+  --aurora-5: #1D9E75;
+}
+
+@keyframes aurora {
+  from { background-position: 50% 50%, 50% 50%; }
+  to   { background-position: 350% 50%, 350% 50%; }
+}
+
+/* Single-bg-image version used by inline-style aurora */
+@keyframes auroraMove {
+  from { background-position: 50% 50%; }
+  to   { background-position: 250% 50%; }
+}
+
+@utility animate-aurora {
+  animation: aurora 60s linear infinite;
+}
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-mono: var(--font-mono);
+}
+
+body {
+  font-family: var(--font-sans), Inter, system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--off-white);
+}
+
+.font-serif  { font-family: var(--font-serif), 'Playfair Display', Georgia, serif; }
+.font-sans   { font-family: var(--font-sans), Inter, system-ui, sans-serif; }
+.font-mono   { font-family: var(--font-mono), 'DM Mono', ui-monospace, monospace; }
