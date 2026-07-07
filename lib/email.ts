@@ -11,6 +11,11 @@ export interface EmailExtras {
   targetBand: string
   studentLevel: string
   studyTime: string
+  dob?: string
+  workplace?: string
+  learningFormat?: string
+  ieltsStudied?: string
+  gradeEstimate?: string
   specialNotice?: string | null
   writingFeedback?: {
     task2?: { wordCount: number; hasEnoughWords: boolean; vocabLevel: string; grammarNote: string }
@@ -24,22 +29,27 @@ const CLASS_DESCRIPTIONS: Record<string, string> = {
   'Complete IELTS (Trình độ 5-6+)': '~1.5 năm · 5 giai đoạn · 1.500.000đ/tháng',
 }
 
+// Mô tả ngắn dùng riêng cho tin nhắn Zalo: chỉ số buổi/tuần + học phí/tháng
+const ZALO_CLASS_DESC: Record<string, string> = {
+  'IELTS Nền Tảng (Trình độ 3-4)': '2 buổi/tuần – học phí: 1.200.000đ/tháng',
+  'IELTS Căn Bản (Trình độ 4-5)': '2 buổi/tuần – học phí: 1.200.000đ/tháng',
+  'Complete IELTS (Trình độ 5-6+)': '2 buổi/tuần – học phí: 1.500.000đ/tháng',
+}
+
 function buildZaloMessage(data: TestSubmission, extras: EmailExtras): string {
   const firstName = data.studentName.trim().split(' ').pop() || data.studentName
-  const classDesc = CLASS_DESCRIPTIONS[data.suggestedClass] || ''
+  const classDesc = ZALO_CLASS_DESC[data.suggestedClass] || CLASS_DESCRIPTIONS[data.suggestedClass] || ''
   const notice = extras.specialNotice
     ? `\n⚠️ *Lưu ý:* ${extras.specialNotice}`
     : ''
 
-  return `Chào ${firstName}! Thầy Long đây ạ 😊
+  return `Chào em.
 
-Cảm ơn ${firstName} đã hoàn thành bài kiểm tra đầu vào LongIELTS!
+Cảm ơn ${firstName} đã hoàn thành bài kiểm tra đầu vào của lớp thầy!
 
 Dựa trên kết quả, thầy thấy ${firstName} phù hợp với lớp *${data.suggestedClass}* (${classDesc}).${notice}
 
-Thầy muốn mời ${firstName} tham gia *2 buổi học thử miễn phí* để trải nghiệm trực tiếp cách học của lớp.
-
-${firstName} có thể sắp xếp đến vào *[NGÀY/GIỜ]* không ạ? Nếu không tiện thì mình có thể đổi buổi khác 😊`
+Em có thể sắp xếp tham gia 2 buổi học thử miễn phí để trải nghiệm trực tiếp lớp học không?`
 }
 
 export async function sendResultToLong(data: TestSubmission, extras?: EmailExtras): Promise<void> {
@@ -64,11 +74,18 @@ export async function sendResultToLong(data: TestSubmission, extras?: EmailExtra
     ? `\n--- SPEAKING ---\nFile ghi âm: ${data.recordingUrl}`
     : ''
 
+  const gradeAndSchool = extras
+    ? [extras.gradeEstimate, extras.workplace].filter(Boolean).join(' — ')
+    : ''
+
   const studentProfile = extras
-    ? `Trình độ tự báo cáo: ${extras.studentLevel}
+    ? `Ngày tháng năm sinh: ${extras.dob || 'Chưa điền'}
+Học sinh lớp mấy, trường nào: ${gradeAndSchool || 'Chưa điền'}
+Trình độ tự báo cáo: ${extras.studentLevel}
+Đã từng học IELTS chưa: ${extras.ieltsStudied || 'Chưa điền'}
 Thời gian dự kiến thi: ${extras.examDate || 'Chưa xác định'}
 Band mục tiêu: ${extras.targetBand || 'Chưa điền'}
-Thời gian tự học: ${extras.studyTime || 'Chưa điền'}`
+Bạn thích học hình thức nào: ${extras.learningFormat || 'Chưa điền'}`
     : ''
 
   const specialNoticeSection = extras?.specialNotice
@@ -94,7 +111,6 @@ Học viên mới nộp bài — cần xem xét và liên hệ.
 === THÔNG TIN HỌC VIÊN ===
 Họ tên: ${data.studentName}
 SĐT: ${data.studentPhone}
-Thời gian nộp: ${data.submittedAt}
 ${studentProfile}
 
 === BÀI TEST ===

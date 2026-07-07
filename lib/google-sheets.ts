@@ -20,6 +20,7 @@ function getSheets() {
 // 0-based column indices in "Thông tin" tab (verified from live sheet: A=0, G=6, N=13, X=23 …)
 const COL = {
   NAME:         1,   // B
+  DOB:          5,   // F  — Ngày tháng năm sinh
   LEVEL:        6,   // G
   IELTS_STUDIED:21,  // V
   EXAM_DATE:    23,  // X  ← primary trigger for Test 3
@@ -27,6 +28,8 @@ const COL = {
   SKILLS:       9,   // J
   STUDY_TIME:   13,  // N
   BEST_TIME:    14,  // O
+  WORKPLACE:    18,  // S  — Nơi học tập hoặc làm việc hiện tại
+  LEARNING_FORMAT: 29, // AD — Bạn thích học hình thức nào?
   IELTS_TESTED: 31,  // AF
   PHONE:        32,  // AG
 }
@@ -189,6 +192,7 @@ function makeRecord(row: string[], index: number): StudentRecord {
   return {
     name:         row[COL.NAME]          || '',
     phone:        row[COL.PHONE]         || '',
+    dob:          row[COL.DOB]           || '',
     level:        row[COL.LEVEL]         || '',
     ieltsStudied: row[COL.IELTS_STUDIED] || '',
     ieltsTested:  row[COL.IELTS_TESTED]  || '',
@@ -197,6 +201,8 @@ function makeRecord(row: string[], index: number): StudentRecord {
     skills:       row[COL.SKILLS]        || '',
     studyTime:    row[COL.STUDY_TIME]    || '',
     bestTime:     row[COL.BEST_TIME]     || '',
+    workplace:    row[COL.WORKPLACE]     || '',
+    learningFormat: row[COL.LEARNING_FORMAT] || '',
     rowIndex:     index + 1,
   }
 }

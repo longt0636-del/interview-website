@@ -18,6 +18,7 @@ function getMockStudent(name: string, phone: string): StudentRecord {
   return {
     name: name || 'Học viên test',
     phone: phone || '0900000000',
+    dob: '01/01/2010',
     level,
     ieltsStudied: 'Chưa',
     ieltsTested: 'Chưa',
@@ -26,6 +27,8 @@ function getMockStudent(name: string, phone: string): StudentRecord {
     skills: 'Nghe, Nói',
     studyTime: '1–2 giờ',
     bestTime: 'Tối',
+    workplace: 'THCS Nguyễn Du',
+    learningFormat: 'Học online 1 kèm 1',
     rowIndex: 1,
   }
 }

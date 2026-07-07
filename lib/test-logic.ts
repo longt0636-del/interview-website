@@ -3,6 +3,7 @@ export type TestLevel = 1 | 2 | 3
 export interface StudentRecord {
   name: string
   phone: string
+  dob: string            // col F: Ngày tháng năm sinh
   level: string          // col G: Mất gốc / Cơ bản / Trung bình / Khá / Giỏi
   ieltsStudied: string   // col V: Bạn đã từng học IELTS bao giờ chưa?
   ieltsTested: string    // col AF: Bạn đã từng thi IELTS bao giờ chưa?
@@ -11,7 +12,28 @@ export interface StudentRecord {
   skills: string         // col J: Kỹ năng muốn tập trung
   studyTime: string      // col N: Thời gian học mỗi ngày
   bestTime: string       // col O: Thời gian học tốt nhất
+  workplace: string      // col S: Nơi học tập hoặc làm việc hiện tại
+  learningFormat: string // col AD: Bạn thích học hình thức nào?
   rowIndex: number
+}
+
+// Ước tính "học lớp mấy" từ ngày sinh, theo quy tắc tuyển sinh VN
+// (xếp lớp theo NĂM sinh, không theo ngày/tháng cụ thể — lớp 1 vào năm tròn 6 tuổi).
+export function estimateGradeFromDOB(dobStr: string): string {
+  if (!dobStr) return ''
+
+  const match = dobStr.trim().match(/(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})|(\d{4})[/\-](\d{1,2})[/\-](\d{1,2})/)
+  const birthYear = match ? parseInt(match[3] || match[4]) : NaN
+  if (!birthYear || Number.isNaN(birthYear)) return ''
+
+  const now = new Date()
+  // Năm học VN bắt đầu tháng 9 — trước tháng 9 vẫn tính là năm học bắt đầu từ tháng 9 năm trước
+  const schoolYearStart = now.getMonth() + 1 >= 9 ? now.getFullYear() : now.getFullYear() - 1
+  const grade = schoolYearStart - birthYear - 5
+
+  if (grade < 1) return 'Chưa vào lớp 1'
+  if (grade > 12) return 'Đã tốt nghiệp THPT / người đi làm'
+  return `Lớp ${grade}`
 }
 
 function monthsUntilExam(examDateStr: string): number | null {

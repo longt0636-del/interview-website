@@ -6,6 +6,7 @@ import {
   getClassSpecialNotice,
   analyzeWriting,
   getLevelFeedback,
+  estimateGradeFromDOB,
 } from '@/lib/test-logic'
 
 const isDev = process.env.NODE_ENV === 'development'
@@ -21,6 +22,11 @@ export async function POST(req: NextRequest) {
     const targetBand  = studentRecord?.targetBand  || ''
     const studentLevel = studentRecord?.level      || ''
     const studyTime   = studentRecord?.studyTime   || ''
+    const dob         = studentRecord?.dob         || ''
+    const workplace   = studentRecord?.workplace   || ''
+    const learningFormat = studentRecord?.learningFormat || ''
+    const ieltsStudied = studentRecord?.ieltsStudied || ''
+    const gradeEstimate = estimateGradeFromDOB(dob)
 
     // Calculate suggested class from actual test scores + exam date
     const suggestedClass = suggestClassFromScores(
@@ -82,6 +88,11 @@ export async function POST(req: NextRequest) {
         targetBand,
         studentLevel,
         studyTime,
+        dob,
+        workplace,
+        learningFormat,
+        ieltsStudied,
+        gradeEstimate,
         specialNotice,
         writingFeedback: {
           task1: task1Analysis,
