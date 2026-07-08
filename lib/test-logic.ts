@@ -71,10 +71,24 @@ function monthsUntilExam(examDateStr: string): number | null {
   return null
 }
 
+// Col V ("Bạn đã từng học IELTS bao giờ chưa?") is free text, not a Yes/No field.
+// Strip common Vietnamese filler/pronoun prefixes, then check if what remains
+// starts with a negation word ("chưa", "không", "ko") → treated as "hasn't studied".
+function hasStudiedIeltsBefore(ieltsStudied: string): boolean {
+  const text = ieltsStudied.trim().toLowerCase()
+  if (!text) return false
+  const stripped = text.replace(/^(dạ\s+|em\s+|e\s+|con\s+|mình\s+|tôi\s+)+/, '')
+  return !/^(chưa|không|ko)\b/.test(stripped)
+}
+
 export function determineTestLevel(student: StudentRecord): TestLevel {
-  // Primary rule: exam coming up within 4 months → full test (Test 3) immediately
   const months = monthsUntilExam(student.examDate)
+
+  // Primary rule: exam coming up within 4 months → full test (Test 3) immediately
   if (months !== null && months <= 4) return 3
+
+  // Also qualifies for Test 3: exam within 5–6 months AND already studied IELTS elsewhere
+  if (months !== null && months <= 6 && hasStudiedIeltsBefore(student.ieltsStudied)) return 3
 
   // Fallback: route by current level
   const lvl = student.level.toLowerCase()
