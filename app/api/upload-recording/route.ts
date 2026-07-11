@@ -21,9 +21,13 @@ export async function POST(req: NextRequest) {
 
     const timestamp = Date.now()
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-    const blob = await put(`recordings/${timestamp}_${safeName}`, file, { access: 'public' })
+    const blob = await put(`recordings/${timestamp}_${safeName}`, file, { access: 'private' })
 
-    return NextResponse.json({ url: blob.url })
+    // Store hiện tại chỉ hỗ trợ private blob — trả về link proxy qua route riêng
+    // (route đó dùng token phía server để đọc nội dung), thay vì trả thẳng blob.url.
+    const proxyUrl = `${req.nextUrl.origin}/api/recording?path=${encodeURIComponent(blob.pathname)}`
+
+    return NextResponse.json({ url: proxyUrl })
   } catch (err) {
     console.error('upload-recording error:', err)
     const detail = err instanceof Error ? err.message : String(err)
