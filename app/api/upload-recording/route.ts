@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: blob.url })
   } catch (err) {
     console.error('upload-recording error:', err)
-    return NextResponse.json({ error: 'Lỗi upload file.' }, { status: 500 })
+    const detail = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: 'Lỗi upload file.', detail }, { status: 500 })
   }
 }
