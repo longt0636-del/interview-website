@@ -1,11 +1,23 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type { TestSection } from '@/lib/test2-content'
+import type { TestSection, McqMultiGroup } from '@/lib/test2-content'
 import { BlankFillText } from './BlankFillText'
 import { MatchingQuestion } from './MatchingQuestion'
 import { McqQuestion } from './McqQuestion'
+import { McqMultiQuestion } from './McqMultiQuestion'
+import { HighlightableText, type HighlightRange } from './HighlightableText'
 import { isAnswerCorrect } from './normalize'
+
+function parseMultiSelection(raw: string | undefined): string[] {
+  if (!raw) return []
+  try {
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
 
 interface NextSectionInfo {
   id: TestSection['id']
@@ -38,7 +50,32 @@ export function ReadingListeningExercise({
   const [score, setScore] = useState(0)
   const [seconds, setSeconds] = useState(0)
   const [mobileTab, setMobileTab] = useState<'content' | 'questions'>('content')
+  const [highlights, setHighlights] = useState<Record<number, HighlightRange[]>>({})
   const hasPassage = !!section.passageParagraphs
+
+  function addHighlight(paraIdx: number, start: number, end: number) {
+    setHighlights((prev) => {
+      const merged = [...(prev[paraIdx] ?? []), { start, end }]
+        .sort((a, b) => a.start - b.start)
+        .reduce<HighlightRange[]>((acc, r) => {
+          const last = acc[acc.length - 1]
+          if (last && r.start <= last.end) {
+            last.end = Math.max(last.end, r.end)
+          } else {
+            acc.push({ ...r })
+          }
+          return acc
+        }, [])
+      return { ...prev, [paraIdx]: merged }
+    })
+  }
+
+  function removeHighlight(paraIdx: number, index: number) {
+    setHighlights((prev) => ({
+      ...prev,
+      [paraIdx]: (prev[paraIdx] ?? []).filter((_, i) => i !== index),
+    }))
+  }
 
   useEffect(() => {
     if (submitted) return
@@ -58,6 +95,9 @@ export function ReadingListeningExercise({
           const num = Number(key)
           if (isAnswerCorrect(answers[num] ?? '', group.answers[num])) total++
         }
+      } else if (group.kind === 'mcqMulti') {
+        const selected = parseMultiSelection(answers[group.numbers[0]])
+        total += selected.filter((letter) => group.answers.includes(letter)).length
       } else {
         for (const key of Object.keys(group.answers)) {
           const num = Number(key)
@@ -66,6 +106,21 @@ export function ReadingListeningExercise({
       }
     }
     return total
+  }
+
+  function handleMultiToggle(group: McqMultiGroup, letter: string) {
+    const current = parseMultiSelection(answers[group.numbers[0]])
+    let next: string[]
+    if (current.includes(letter)) {
+      next = current.filter((l) => l !== letter)
+    } else if (current.length >= 2) {
+      return
+    } else {
+      next = [...current, letter]
+    }
+    const raw = JSON.stringify(next)
+    handleAnswerChange(group.numbers[0], raw)
+    handleAnswerChange(group.numbers[1], raw)
   }
 
   function handleComplete() {
@@ -112,7 +167,7 @@ export function ReadingListeningExercise({
       <div className="space-y-10">
         {section.groups.map((group, i) => (
           <div key={i}>
-            {group.kind === 'fill' && group.title && (
+            {group.kind !== 'mcqMulti' && group.title && (
               <p
                 className="text-sm font-semibold font-sans uppercase tracking-wide mb-2"
                 style={{ color: 'var(--teal)' }}
@@ -124,14 +179,23 @@ export function ReadingListeningExercise({
               {group.instruction}
             </p>
             {group.kind === 'fill' && (
-              <BlankFillText
-                blocks={group.blocks}
-                answers={answers}
-                onChange={handleAnswerChange}
-                showResults={submitted}
-                correctAnswers={group.answers}
-                asLines={section.id !== 'reading'}
-              />
+              <>
+                {group.imageSrc && (
+                  <div className="rounded-xl border overflow-hidden bg-white mb-5" style={{ borderColor: '#E5E7EB' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={group.imageSrc} alt={group.imageAlt || ''} className="w-full h-auto" />
+                  </div>
+                )}
+                <BlankFillText
+                  blocks={group.blocks}
+                  answers={answers}
+                  onChange={handleAnswerChange}
+                  showResults={submitted}
+                  correctAnswers={group.answers}
+                  asLines={group.asLines ?? !hasPassage}
+                  wordBank={group.wordBank}
+                />
+              </>
             )}
             {group.kind === 'matching' && (
               <MatchingQuestion
@@ -142,6 +206,9 @@ export function ReadingListeningExercise({
                 onChange={handleAnswerChange}
                 showResults={submitted}
                 correctAnswers={group.answers}
+                optionsImage={group.optionsImage}
+                picker={group.picker}
+                layout={group.layout}
               />
             )}
             {group.kind === 'mcq' && (
@@ -152,6 +219,18 @@ export function ReadingListeningExercise({
                 showResults={submitted}
                 correctAnswers={group.answers}
               />
+            )}
+            {group.kind === 'mcqMulti' && (
+              <>
+                <span id={`q-${group.numbers[0]}`} className="block scroll-mt-28" />
+                <span id={`q-${group.numbers[1]}`} className="block scroll-mt-28" />
+                <McqMultiQuestion
+                  group={group}
+                  selected={parseMultiSelection(answers[group.numbers[0]])}
+                  onToggle={(letter) => handleMultiToggle(group, letter)}
+                  showResults={submitted}
+                />
+              </>
             )}
           </div>
         ))}
@@ -219,14 +298,22 @@ export function ReadingListeningExercise({
             style={{ borderColor: '#E5E7EB' }}
           >
             {section.passageTitle && (
-              <h3 className="font-serif font-bold text-xl mb-4" style={{ color: 'var(--navy)' }}>
+              <h3 className="font-serif font-bold text-xl mb-2" style={{ color: 'var(--navy)' }}>
                 {section.passageTitle}
               </h3>
             )}
+            <p className="text-sm font-sans mb-4" style={{ color: 'var(--ink)', opacity: 0.55 }}>
+              💡 Kéo chuột để bôi đen câu quan trọng — bấm vào phần đã tô để bỏ đánh dấu.
+            </p>
             {section.passageParagraphs?.map((p, i) => (
-              <p key={i} className="text-base leading-relaxed mb-4" style={{ color: 'var(--ink)' }}>
-                {p}
-              </p>
+              <div key={i} className="mb-4">
+                <HighlightableText
+                  text={p}
+                  ranges={highlights[i] ?? []}
+                  onHighlight={(start, end) => addHighlight(i, start, end)}
+                  onRemove={(idx) => removeHighlight(i, idx)}
+                />
+              </div>
             ))}
           </div>
 

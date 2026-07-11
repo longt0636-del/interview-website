@@ -55,6 +55,9 @@ export default function Test2Page() {
 
   const wordCount = writingTask2.trim() ? writingTask2.trim().split(/\s+/).length : 0
 
+  const missingParts: string[] = []
+  if (!writingTask2.trim()) missingParts.push('Writing Task 2')
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
@@ -206,12 +209,17 @@ export default function Test2Page() {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || missingParts.length > 0}
             className="w-full disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold font-sans py-3 rounded-xl transition-opacity hover:opacity-90"
             style={{ background: 'var(--teal)' }}
           >
             {submitting ? 'Đang nộp bài...' : 'Nộp bài cho Thầy Long'}
           </button>
+          {missingParts.length > 0 && (
+            <p className="text-center text-red-500 text-xs font-medium">
+              Cần hoàn thành trước khi nộp: {missingParts.join(', ')}
+            </p>
+          )}
           <p className="text-center text-gray-400 text-xs">
             Bạn có thể quay lại trang này bất cứ lúc nào để hoàn thành và nộp.
           </p>

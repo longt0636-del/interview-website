@@ -14,12 +14,21 @@ export interface BlankPart {
 
 export type FillPart = TextPart | BlankPart
 
+export interface WordBankOption {
+  letter: string
+  label: string
+}
+
 export interface FillBlankGroup {
   kind: 'fill'
   instruction: string
   title?: string
   blocks: FillPart[][] // mỗi phần tử = 1 dòng/đoạn
   answers: Record<number, string[]> // các đáp án được chấp nhận (so sánh không phân biệt hoa/thường)
+  imageSrc?: string // sơ đồ/hình minh họa hiển thị phía trên (VD: diagram labelling)
+  imageAlt?: string
+  asLines?: boolean // ghi đè cách canh khoảng cách dòng mặc định theo section
+  wordBank?: WordBankOption[] // nếu có, mỗi ô trống hiển thị dạng dropdown chọn từ danh sách này thay vì gõ tự do
 }
 
 export interface MatchingOption {
@@ -35,10 +44,14 @@ export interface MatchingItem {
 export interface MatchingGroup {
   kind: 'matching'
   instruction: string
+  title?: string
   optionsTitle: string
   options: MatchingOption[]
   items: MatchingItem[]
   answers: Record<number, string>
+  optionsImage?: string // nếu có, hiển thị ảnh (VD: bản đồ) thay cho danh sách chữ options
+  picker?: 'buttons' | 'dropdown' | 'grid' // 'dropdown': nhiều lựa chọn dài (VD: heading i-viii); 'grid': bảng ô tròn chọn nhanh (VD: bản đồ)
+  layout?: 'stacked' | 'split' // 'split' = ghim options/ảnh 1 bên, câu hỏi 1 bên trên màn hình rộng
 }
 
 export interface McqOption {
@@ -55,14 +68,31 @@ export interface McqItem {
 export interface McqGroup {
   kind: 'mcq'
   instruction: string
+  title?: string
   items: McqItem[]
   answers: Record<number, string>
 }
 
-export type QuestionGroup = FillBlankGroup | MatchingGroup | McqGroup
+export interface McqMultiOption {
+  letter: string
+  label: string
+}
+
+// Dạng "Choose TWO letters" — 1 nhóm câu hỏi dùng chung 1 danh sách lựa chọn,
+// học sinh chọn đúng 2 trong số các lựa chọn cho 2 số câu hỏi liên tiếp.
+export interface McqMultiGroup {
+  kind: 'mcqMulti'
+  instruction: string
+  prompt: string
+  options: McqMultiOption[]
+  numbers: [number, number]
+  answers: string[] // đúng 2 chữ cái đúng, thứ tự không quan trọng
+}
+
+export type QuestionGroup = FillBlankGroup | MatchingGroup | McqGroup | McqMultiGroup
 
 export interface TestSection {
-  id: 'reading' | 'listeningS1' | 'listeningS2'
+  id: string
   label: string
   timeLabel: string
   passageTitle?: string
@@ -72,10 +102,10 @@ export interface TestSection {
   groups: QuestionGroup[]
 }
 
-function text(value: string): TextPart {
+export function text(value: string): TextPart {
   return { type: 'text', value }
 }
-function blank(number: number): BlankPart {
+export function blank(number: number): BlankPart {
   return { type: 'blank', number }
 }
 
