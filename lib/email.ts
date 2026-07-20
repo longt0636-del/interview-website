@@ -6,17 +6,6 @@ function getResend() {
 }
 const LONG_EMAIL = 'longt0636@gmail.com'
 
-async function sendTelegramToLong(text: string): Promise<void> {
-  const token = process.env.TELEGRAM_BOT_TOKEN
-  const chatId = process.env.TELEGRAM_CHAT_ID
-  if (!token || !chatId) return
-  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chat_id: chatId, text }),
-  })
-}
-
 export interface EmailExtras {
   examDate: string
   targetBand: string
@@ -142,14 +131,13 @@ Xem chi tiết: https://docs.google.com/spreadsheets/d/1f-AI4H-UMKDKSObyoEfZk_Wl
 `.trim()
 
   const subject = `[Học viên mới] ${data.studentName} — ${testName}`
-  const telegramText = `${subject}\n\n${body}`
-  const TELEGRAM_LIMIT = 4000
-  const truncated =
-    telegramText.length > TELEGRAM_LIMIT
-      ? telegramText.slice(0, TELEGRAM_LIMIT) + '\n\n… (nội dung dài, xem đầy đủ trong sheet)'
-      : telegramText
 
-  await sendTelegramToLong(truncated)
+  await getResend().emails.send({
+    from: 'LongIELTS <noreply@longielts.com>',
+    to: LONG_EMAIL,
+    subject,
+    text: body,
+  })
 }
 
 export async function sendConfirmationToStudent(
