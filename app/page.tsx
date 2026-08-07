@@ -18,11 +18,10 @@ const courses = [
     from: '0',
     target: '4.0+',
     tagline: 'Xây nền tảng vững chắc • Nâng band vượt bậc',
-    stats: [
-      { value: '<8',  label: 'HV/lớp' },
-      { value: '2x',  label: 'Buổi/tuần' },
-      { value: '10T', label: 'Lộ trình' },
-    ],
+    price: '1.200.000',
+    oldPrice: '1.400.000',
+    savings: '200K',
+    classSize: '8-10',
   },
   {
     tag: 'IELTS CĂN BẢN — Band 4–5',
@@ -33,11 +32,10 @@ const courses = [
     from: '4.0',
     target: '5.0+',
     tagline: 'Hệ thống kiến thức • Chiến lược làm bài hiệu quả',
-    stats: [
-      { value: '<8',  label: 'HV/lớp' },
-      { value: '2x',  label: 'Buổi/tuần' },
-      { value: '10T', label: 'Lộ trình' },
-    ],
+    price: '1.200.000',
+    oldPrice: '1.400.000',
+    savings: '200K',
+    classSize: '8-10',
   },
   {
     tag: 'ROAD TO IELTS — Band 5–6+',
@@ -48,11 +46,10 @@ const courses = [
     from: '5.0',
     target: '7.0+',
     tagline: 'Chiến lược chuyên sâu • Luyện đề sát thực tế',
-    stats: [
-      { value: '<8',  label: 'HV/lớp' },
-      { value: '3x',  label: 'Buổi/tuần' },
-      { value: '8T',  label: 'Lộ trình' },
-    ],
+    price: '1.500.000',
+    oldPrice: '1.800.000',
+    savings: '300K',
+    classSize: '8-10',
   },
 ]
 
@@ -277,18 +274,18 @@ export default function HomePage() {
                   {/* Icon + Title */}
                   <div className="flex items-start gap-3 mb-3">
                     <div
-                      className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-xl"
+                      className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl"
                       style={{ background: 'var(--mint)' }}
                     >
                       {c.icon}
                     </div>
-                    <h3 className="font-serif font-bold text-xl leading-snug"
+                    <h3 className="font-serif font-bold text-2xl leading-snug"
                         style={{ color: 'var(--navy)' }}>
                       {c.name}
                     </h3>
                   </div>
 
-                  <p className="font-sans text-sm leading-relaxed mb-5 flex-1"
+                  <p className="font-sans text-sm leading-relaxed mb-4 flex-1"
                      style={{ color: 'var(--ink)', opacity: 0.75 }}>
                     {c.desc}
                   </p>
@@ -296,7 +293,7 @@ export default function HomePage() {
                   {/* Target band block — from → to */}
                   <div
                     className="rounded-xl px-4 pt-3 pb-2.5 mb-4"
-                    style={{ background: 'var(--navy)' }}
+                    style={{ background: '#147767' }}
                   >
                     <div className="font-sans text-xs font-semibold uppercase tracking-wider mb-3"
                          style={{ color: 'rgba(255,255,255,0.5)' }}>
@@ -332,23 +329,40 @@ export default function HomePage() {
                         🎯
                       </div>
                     </div>
-                    <p className="font-sans text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    <p className="font-sans text-xs mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>
                       {c.tagline}
                     </p>
+
+                    {/* Divider */}
+                    <div className="h-px mb-3" style={{ background: 'rgba(255,255,255,0.14)' }} />
+
+                    {/* Tuition */}
+                    <div className="font-sans text-xs font-semibold uppercase tracking-wider mb-2"
+                         style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      Học phí
+                    </div>
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="font-mono font-bold text-2xl" style={{ color: 'var(--amber)' }}>
+                        {c.price}đ
+                      </span>
+                      <span className="font-sans text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                        /tháng
+                      </span>
+                      <span className="font-mono text-sm line-through" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                        {c.oldPrice}đ
+                      </span>
+                      <span className="font-sans text-[11px] font-bold px-2 py-0.5 rounded-full"
+                            style={{ background: 'rgba(239,159,39,0.2)', color: 'var(--amber)' }}>
+                        -{c.savings}
+                      </span>
+                    </div>
                   </div>
 
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-2 pt-4 border-t" style={{ borderColor: 'var(--mint)' }}>
-                    {c.stats.map((s) => (
-                      <div key={s.label} className="text-center">
-                        <div className="font-mono font-bold text-base" style={{ color: 'var(--navy)' }}>
-                          {s.value}
-                        </div>
-                        <div className="font-sans text-xs mt-0.5" style={{ color: 'var(--ink)', opacity: 0.55 }}>
-                          {s.label}
-                        </div>
-                      </div>
-                    ))}
+                  {/* Class size */}
+                  <div className="flex items-center justify-center gap-1.5 pt-4 border-t font-sans text-sm font-medium"
+                       style={{ borderColor: 'var(--mint)', color: 'var(--ink)' }}>
+                    <span>👥</span>
+                    <span>{c.classSize} học viên / lớp</span>
                   </div>
 
                   <div className="mt-4 flex items-center gap-1 text-sm font-semibold font-sans"
