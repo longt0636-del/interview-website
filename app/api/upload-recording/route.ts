@@ -10,8 +10,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Không có file.' }, { status: 400 })
     }
 
-    const allowedTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp4', 'audio/webm', 'video/webm']
-    if (!allowedTypes.includes(file.type)) {
+    // file.type do trình duyệt tự đoán và không đáng tin cậy, đặc biệt với .m4a ghi từ
+    // iPhone (Safari thường gán 'audio/x-m4a' hoặc để trống thay vì 'audio/mp4').
+    // Chấp nhận nếu MIME type HOẶC đuôi file khớp danh sách cho phép.
+    const allowedTypes = [
+      'audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/ogg',
+      'audio/mp4', 'audio/x-m4a', 'audio/m4a', 'audio/aac',
+      'audio/webm', 'video/webm',
+    ]
+    const allowedExtensions = ['.mp3', '.wav', '.m4a', '.ogg', '.webm']
+    const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
+    const validType = allowedTypes.includes(file.type)
+    const validExt = allowedExtensions.includes(ext)
+    if (!validType && !validExt) {
       return NextResponse.json({ error: 'Định dạng file không hợp lệ. Vui lòng upload file âm thanh (mp3, wav, m4a).' }, { status: 400 })
     }
 
