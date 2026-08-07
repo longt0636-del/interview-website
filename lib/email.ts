@@ -104,6 +104,7 @@ Bạn thích học hình thức nào: ${extras.learningFormat || 'Chưa điền'
     : ''
 
   const zaloMsg = extras ? `\n\n${'─'.repeat(50)}\n📱 GỢI Ý TIN NHẮN ZALO (paste ngay):\n${'─'.repeat(50)}\n\n${buildZaloMessage(data, extras)}\n${'─'.repeat(50)}` : ''
+  const fromAddress = process.env.RESEND_FROM_EMAIL || 'LongIELTS <onboarding@resend.dev>'
 
   const body = `
 Học viên mới nộp bài — cần xem xét và liên hệ.
@@ -132,12 +133,15 @@ Xem chi tiết: https://docs.google.com/spreadsheets/d/1f-AI4H-UMKDKSObyoEfZk_Wl
 
   const subject = `[Học viên mới] ${data.studentName} — ${testName}`
 
-  await getResend().emails.send({
-    from: 'LongIELTS <noreply@longielts.com>',
+  const { error } = await getResend().emails.send({
+    from: fromAddress,
     to: LONG_EMAIL,
     subject,
     text: body,
   })
+  if (error) {
+    throw new Error(`Resend failed to send lead notification: ${JSON.stringify(error)}`)
+  }
 }
 
 export async function sendConfirmationToStudent(
@@ -145,10 +149,13 @@ export async function sendConfirmationToStudent(
   studentName: string
 ): Promise<void> {
   if (!studentEmail) return
-  await getResend().emails.send({
-    from: 'LongIELTS <noreply@longielts.com>',
+  const { error } = await getResend().emails.send({
+    from: process.env.RESEND_FROM_EMAIL || 'LongIELTS <onboarding@resend.dev>',
     to: studentEmail,
     subject: 'Thầy Long đã nhận được bài test của bạn!',
     text: `Chào ${studentName},\n\nThầy Long đã nhận được bài kiểm tra trình độ của bạn.\nTrong vòng 24 giờ, thầy sẽ liên hệ qua số điện thoại để sắp xếp buổi học thử.\n\nHẹn gặp bạn sớm!\nThầy Long — LongIELTS`,
   })
+  if (error) {
+    throw new Error(`Resend failed to send student confirmation: ${JSON.stringify(error)}`)
+  }
 }
