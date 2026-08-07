@@ -159,8 +159,12 @@ export default function HomePage() {
                 />
                 <Link
                   href="/get-test"
-                  className="font-sans font-semibold px-8 py-4 rounded-xl border transition-opacity hover:opacity-80 text-base"
-                  style={{ color: 'white', borderColor: 'rgba(255,255,255,0.3)' }}
+                  className="font-sans font-semibold px-8 py-4 rounded-xl text-base transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                  style={{
+                    color: 'var(--navy)',
+                    background: 'var(--amber)',
+                    boxShadow: '0 8px 24px rgba(239,159,39,0.35)',
+                  }}
                 >
                   Bước 2: Nhận bài test →
                 </Link>
@@ -306,12 +310,13 @@ export default function HomePage() {
                       >
                         {c.from}
                       </div>
-                      {/* Dashed arrow */}
-                      <div className="flex-1 flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <div key={i} className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.25)' }} />
-                        ))}
-                        <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2.5} style={{ opacity: 0.7 }}>
+                      {/* Growth arrow */}
+                      <div className="flex-1 flex items-center gap-1.5">
+                        <div
+                          className="flex-1 h-1.5 rounded-full"
+                          style={{ background: 'linear-gradient(to right, rgba(255,255,255,0.15), var(--amber))' }}
+                        />
+                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="var(--amber)" strokeWidth={3}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                         </svg>
                       </div>
@@ -320,7 +325,12 @@ export default function HomePage() {
                         {c.target}
                       </div>
                       {/* Target icon */}
-                      <div className="shrink-0 text-xl opacity-30 ml-1">🎯</div>
+                      <div
+                        className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm ml-1"
+                        style={{ background: 'rgba(239,159,39,0.18)' }}
+                      >
+                        🎯
+                      </div>
                     </div>
                     <p className="font-sans text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
                       {c.tagline}
