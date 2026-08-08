@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { upload } from '@vercel/blob/client'
 import { PromiseResubmit } from '@/components/ui/promise-resubmit'
 import { ReadingListeningExercise } from '@/components/test-exercise/ReadingListeningExercise'
 import { TEST3_SECTIONS } from '@/lib/test3-content'
@@ -24,6 +25,18 @@ const EXERCISE_CARDS: { id: string; icon: string; title: string; shortLabel: str
 ]
 
 const EXERCISE_ORDER = EXERCISE_CARDS.map((c) => c.id)
+
+// file.type do trình duyệt tự đoán không đáng tin cậy (đặc biệt .m4a ghi từ iPhone/Safari
+// thường trả về rỗng hoặc 'audio/x-m4a'). Suy content-type từ đuôi file để luôn gửi giá trị
+// chuẩn lên Vercel Blob, thay vì phụ thuộc vào MIME type trình duyệt tự gán.
+const AUDIO_MIME_BY_EXT: Record<string, string> = {
+  '.mp3': 'audio/mpeg',
+  '.wav': 'audio/wav',
+  '.m4a': 'audio/mp4',
+  '.ogg': 'audio/ogg',
+  '.webm': 'audio/webm',
+  '.aac': 'audio/aac',
+}
 
 function getNextExerciseId(current: string): string | null {
   const idx = EXERCISE_ORDER.indexOf(current)
@@ -73,6 +86,7 @@ export default function Test3Page() {
   const [recordingFile, setRecordingFile] = useState<File | null>(null)
   const [recordingUrl, setRecordingUrl] = useState('')
   const [uploadingRecording, setUploadingRecording] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -106,14 +120,28 @@ export default function Test3Page() {
 
   async function handleRecordingUpload(file: File) {
     setUploadingRecording(true)
+    setUploadProgress(0)
     setError('')
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      const res = await fetch('/api/upload-recording', { method: 'POST', body: formData })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Upload thất bại')
-      setRecordingUrl(data.url)
+      const timestamp = Date.now()
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const ext = safeName.slice(safeName.lastIndexOf('.')).toLowerCase()
+      const contentType = AUDIO_MIME_BY_EXT[ext] || file.type || 'application/octet-stream'
+
+      // Upload thẳng từ trình duyệt lên Vercel Blob (không qua API route của mình) —
+      // API route chỉ cấp token. Bắt buộc vì Vercel Serverless Function giới hạn body
+      // request ở 4.5MB, trong khi file ghi âm Speaking thật (10-15 phút) thường vượt
+      // mốc này, khiến upload luôn thất bại dù test bằng file nhỏ lúc dev thì vẫn ổn.
+      const blob = await upload(`recordings/${timestamp}_${safeName}`, file, {
+        access: 'private',
+        contentType,
+        multipart: true,
+        handleUploadUrl: '/api/upload-recording',
+        onUploadProgress: ({ percentage }) => setUploadProgress(percentage),
+      })
+
+      const proxyUrl = `${window.location.origin}/api/recording?path=${encodeURIComponent(blob.pathname)}`
+      setRecordingUrl(proxyUrl)
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Lỗi upload file ghi âm.')
     } finally {
@@ -377,7 +405,7 @@ export default function Test3Page() {
               {recordingFile ? (
                 <div>
                   <p className="text-sm font-medium text-gray-700">{recordingFile.name}</p>
-                  {uploadingRecording && <p className="text-xs text-blue-500 mt-1">Đang upload...</p>}
+                  {uploadingRecording && <p className="text-xs text-blue-500 mt-1">Đang upload... {uploadProgress}%</p>}
                   {recordingUrl && <p className="text-xs text-green-600 mt-1">Upload thành công ✓</p>}
                 </div>
               ) : (

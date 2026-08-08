@@ -1,47 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
+import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
+
+// Chỉ kiểm tra đuôi file — content-type gửi lên do client tự suy từ đuôi file
+// (xem AUDIO_MIME_BY_EXT ở app/test/3/page.tsx), không dùng MIME trình duyệt tự đoán
+// vì Safari/iOS thường gán sai hoặc để trống cho .m4a.
+const allowedExtensions = ['.mp3', '.wav', '.m4a', '.ogg', '.webm', '.aac']
 
 export async function POST(req: NextRequest) {
+  const body = (await req.json()) as HandleUploadBody
+
   try {
-    const formData = await req.formData()
-    const file = formData.get('file') as File
+    const jsonResponse = await handleUpload({
+      body,
+      request: req,
+      onBeforeGenerateToken: async (pathname) => {
+        const ext = pathname.slice(pathname.lastIndexOf('.')).toLowerCase()
+        if (!allowedExtensions.includes(ext)) {
+          throw new Error('Định dạng file không hợp lệ. Vui lòng upload file âm thanh (mp3, wav, m4a).')
+        }
+        return {
+          allowedContentTypes: ['audio/*', 'video/webm', 'application/octet-stream'],
+          maximumSizeInBytes: 50 * 1024 * 1024,
+          addRandomSuffix: false,
+        }
+      },
+    })
 
-    if (!file) {
-      return NextResponse.json({ error: 'Không có file.' }, { status: 400 })
-    }
-
-    // file.type do trình duyệt tự đoán và không đáng tin cậy, đặc biệt với .m4a ghi từ
-    // iPhone (Safari thường gán 'audio/x-m4a' hoặc để trống thay vì 'audio/mp4').
-    // Chấp nhận nếu MIME type HOẶC đuôi file khớp danh sách cho phép.
-    const allowedTypes = [
-      'audio/mpeg', 'audio/wav', 'audio/x-wav', 'audio/ogg',
-      'audio/mp4', 'audio/x-m4a', 'audio/m4a', 'audio/aac',
-      'audio/webm', 'video/webm',
-    ]
-    const allowedExtensions = ['.mp3', '.wav', '.m4a', '.ogg', '.webm']
-    const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
-    const validType = allowedTypes.includes(file.type)
-    const validExt = allowedExtensions.includes(ext)
-    if (!validType && !validExt) {
-      return NextResponse.json({ error: 'Định dạng file không hợp lệ. Vui lòng upload file âm thanh (mp3, wav, m4a).' }, { status: 400 })
-    }
-
-    if (file.size > 50 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File quá lớn. Tối đa 50MB.' }, { status: 400 })
-    }
-
-    const timestamp = Date.now()
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-    const blob = await put(`recordings/${timestamp}_${safeName}`, file, { access: 'private' })
-
-    // Store hiện tại chỉ hỗ trợ private blob — trả về link proxy qua route riêng
-    // (route đó dùng token phía server để đọc nội dung), thay vì trả thẳng blob.url.
-    const proxyUrl = `${req.nextUrl.origin}/api/recording?path=${encodeURIComponent(blob.pathname)}`
-
-    return NextResponse.json({ url: proxyUrl })
+    return NextResponse.json(jsonResponse)
   } catch (err) {
-    console.error('upload-recording error:', err)
+    console.error('upload-recording token error:', err)
     const detail = err instanceof Error ? err.message : String(err)
-    return NextResponse.json({ error: 'Lỗi upload file.', detail }, { status: 500 })
+    return NextResponse.json({ error: 'Lỗi upload file.', detail }, { status: 400 })
   }
 }
