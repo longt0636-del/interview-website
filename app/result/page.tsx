@@ -269,6 +269,21 @@ export default function ResultPage() {
                 Nhận lộ trình học cá nhân hóa phù hợp với mục tiêu và trình độ của bạn.
               </span>
             </li>
+            <li className="flex gap-2.5">
+              <span className="shrink-0 font-mono font-bold text-sm mt-0.5" style={{ color: 'var(--teal)' }}>04</span>
+              <span className="font-sans text-sm leading-relaxed" style={{ color: 'var(--navy)' }}>
+                Muốn trao đổi ngay? Chủ động nhắn Zalo cho thầy Long:{' '}
+                <a
+                  href="https://zalo.me/0367832164"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold underline"
+                  style={{ color: 'var(--teal)' }}
+                >
+                  0367 832 164
+                </a>.
+              </span>
+            </li>
           </ul>
         </div>
 

@@ -55,6 +55,20 @@ export default function SubmittedPage() {
               <span className="shrink-0">🎯</span>
               <span>Nhận lộ trình học cá nhân hóa phù hợp với mục tiêu và trình độ.</span>
             </li>
+            <li className="flex gap-2">
+              <span className="shrink-0">💬</span>
+              <span>
+                Muốn trao đổi ngay? Chủ động nhắn Zalo cho thầy Long:{' '}
+                <a
+                  href="https://zalo.me/0367832164"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline font-semibold"
+                >
+                  0367 832 164
+                </a>.
+              </span>
+            </li>
           </ul>
         </div>
 
