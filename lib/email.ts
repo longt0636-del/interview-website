@@ -70,8 +70,11 @@ export async function sendResultToLong(data: TestSubmission, extras?: EmailExtra
       ? `\n--- WRITING ---\n${data.writingTask1 ? `Task 1:\n${data.writingTask1}\n\n` : ''}${data.writingTask2 ? `Task 2:\n${data.writingTask2}` : ''}`
       : ''
 
-  const speakingSection = data.recordingUrl
-    ? `\n--- SPEAKING ---\nFile ghi âm: ${data.recordingUrl}`
+  const recordingUrls = data.recordingUrl ? data.recordingUrl.split('\n').filter(Boolean) : []
+  const speakingSection = recordingUrls.length
+    ? `\n--- SPEAKING ---\n${recordingUrls.length > 1
+        ? recordingUrls.map((url, i) => `File ghi âm (lần ${i + 1}/${recordingUrls.length}): ${url}`).join('\n')
+        : `File ghi âm: ${recordingUrls[0]}`}`
     : ''
 
   const gradeAndSchool = extras

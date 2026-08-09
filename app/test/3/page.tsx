@@ -14,6 +14,15 @@ interface StudentInfo {
   testLevel: number
 }
 
+interface RecordingItem {
+  id: string
+  file: File
+  url: string
+  uploading: boolean
+  progress: number
+  error: string
+}
+
 const EXERCISE_CARDS: { id: string; icon: string; title: string; shortLabel: string; group: 'reading' | 'listening' }[] = [
   { id: 'readingP1', icon: '📖', title: 'Reading Passage 1 — Roman tunnels', shortLabel: 'Reading P1', group: 'reading' },
   { id: 'readingP2', icon: '📖', title: 'Reading Passage 2 — Changes in reading habits', shortLabel: 'Reading P2', group: 'reading' },
@@ -83,10 +92,7 @@ export default function Test3Page() {
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null)
   const [writingTask1, setWritingTask1] = useState('')
   const [writingTask2, setWritingTask2] = useState('')
-  const [recordingFile, setRecordingFile] = useState<File | null>(null)
-  const [recordingUrl, setRecordingUrl] = useState('')
-  const [uploadingRecording, setUploadingRecording] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
+  const [recordings, setRecordings] = useState<RecordingItem[]>([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -113,40 +119,60 @@ export default function Test3Page() {
   const listeningDoneCount = LISTENING_IDS.filter((id) => scores[id]).length
   const nextExerciseId = activeExerciseId ? getNextExerciseId(activeExerciseId) : null
 
+  const recordingUrls = recordings.filter((r) => r.url).map((r) => r.url)
+  const uploadingRecording = recordings.some((r) => r.uploading)
+
   const missingParts: string[] = []
   if (!writingTask1.trim()) missingParts.push('Writing Task 1')
   if (!writingTask2.trim()) missingParts.push('Writing Task 2')
-  if (!recordingUrl) missingParts.push('Speaking (file ghi âm)')
+  if (recordingUrls.length === 0) missingParts.push('Speaking (file ghi âm)')
 
-  async function handleRecordingUpload(file: File) {
-    setUploadingRecording(true)
-    setUploadProgress(0)
+  // Upload thẳng từ trình duyệt lên Vercel Blob (không qua API route của mình) —
+  // API route chỉ cấp token. Bắt buộc vì Vercel Serverless Function giới hạn body
+  // request ở 4.5MB, trong khi file ghi âm Speaking thật (10-15 phút) thường vượt
+  // mốc này, khiến upload luôn thất bại dù test bằng file nhỏ lúc dev thì vẫn ổn.
+  async function uploadRecording(item: RecordingItem) {
     setError('')
     try {
       const timestamp = Date.now()
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const safeName = item.file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
       const ext = safeName.slice(safeName.lastIndexOf('.')).toLowerCase()
-      const contentType = AUDIO_MIME_BY_EXT[ext] || file.type || 'application/octet-stream'
+      const contentType = AUDIO_MIME_BY_EXT[ext] || item.file.type || 'application/octet-stream'
 
-      // Upload thẳng từ trình duyệt lên Vercel Blob (không qua API route của mình) —
-      // API route chỉ cấp token. Bắt buộc vì Vercel Serverless Function giới hạn body
-      // request ở 4.5MB, trong khi file ghi âm Speaking thật (10-15 phút) thường vượt
-      // mốc này, khiến upload luôn thất bại dù test bằng file nhỏ lúc dev thì vẫn ổn.
-      const blob = await upload(`recordings/${timestamp}_${safeName}`, file, {
+      const blob = await upload(`recordings/${timestamp}_${safeName}`, item.file, {
         access: 'private',
         contentType,
         multipart: true,
         handleUploadUrl: '/api/upload-recording',
-        onUploadProgress: ({ percentage }) => setUploadProgress(percentage),
+        onUploadProgress: ({ percentage }) =>
+          setRecordings((prev) => prev.map((r) => (r.id === item.id ? { ...r, progress: percentage } : r))),
       })
 
       const proxyUrl = `${window.location.origin}/api/recording?path=${encodeURIComponent(blob.pathname)}`
-      setRecordingUrl(proxyUrl)
+      setRecordings((prev) => prev.map((r) => (r.id === item.id ? { ...r, url: proxyUrl, uploading: false } : r)))
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Lỗi upload file ghi âm.')
-    } finally {
-      setUploadingRecording(false)
+      const message = e instanceof Error ? e.message : 'Lỗi upload file ghi âm.'
+      setRecordings((prev) => prev.map((r) => (r.id === item.id ? { ...r, uploading: false, error: message } : r)))
     }
+  }
+
+  // Học viên có thể thu nhiều lần (nhiều take) và upload tất cả cùng lúc — mỗi file
+  // được nộp riêng, không bị bắt buộc chọn ra 1 file duy nhất trước khi nộp.
+  function handleFilesSelected(fileList: FileList) {
+    const newItems: RecordingItem[] = Array.from(fileList).map((file) => ({
+      id: crypto.randomUUID(),
+      file,
+      url: '',
+      uploading: true,
+      progress: 0,
+      error: '',
+    }))
+    setRecordings((prev) => [...prev, ...newItems])
+    newItems.forEach((item) => uploadRecording(item))
+  }
+
+  function removeRecording(id: string) {
+    setRecordings((prev) => prev.filter((r) => r.id !== id))
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -165,7 +191,7 @@ export default function Test3Page() {
           listeningScore,
           writingTask1,
           writingTask2,
-          recordingUrl,
+          recordingUrl: recordingUrls.join('\n'),
         }),
       })
       if (!res.ok) throw new Error()
@@ -398,35 +424,53 @@ export default function Test3Page() {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Upload file ghi âm Speaking
             </label>
+            <p className="text-xs text-gray-400 mb-2">
+              Thu nhiều lần (nhiều take)? Chọn hoặc thêm tất cả file cùng lúc — không cần chọn ra 1 file duy nhất.
+            </p>
+
+            {recordings.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {recordings.map((r) => (
+                  <div key={r.id} className="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-700 truncate">{r.file.name}</p>
+                      {r.uploading && <p className="text-xs text-blue-500 mt-0.5">Đang upload... {r.progress}%</p>}
+                      {r.url && <p className="text-xs text-green-600 mt-0.5">Upload thành công ✓</p>}
+                      {r.error && <p className="text-xs text-red-500 mt-0.5">{r.error}</p>}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeRecording(r.id)}
+                      className="shrink-0 text-gray-400 hover:text-red-500 text-sm px-1"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div
               onClick={() => fileInputRef.current?.click()}
               className="border-2 border-dashed border-gray-200 hover:border-blue-400 rounded-xl p-6 text-center cursor-pointer transition-colors"
             >
-              {recordingFile ? (
-                <div>
-                  <p className="text-sm font-medium text-gray-700">{recordingFile.name}</p>
-                  {uploadingRecording && <p className="text-xs text-blue-500 mt-1">Đang upload... {uploadProgress}%</p>}
-                  {recordingUrl && <p className="text-xs text-green-600 mt-1">Upload thành công ✓</p>}
-                </div>
-              ) : (
-                <div>
-                  <p className="text-2xl mb-2">🎙️</p>
-                  <p className="text-sm text-gray-500">Bấm để chọn file âm thanh</p>
-                  <p className="text-xs text-gray-400 mt-1">MP3, WAV, M4A — tối đa 50MB</p>
-                </div>
-              )}
+              <p className="text-2xl mb-2">🎙️</p>
+              <p className="text-sm text-gray-500">
+                {recordings.length > 0 ? 'Bấm để thêm file khác' : 'Bấm để chọn file âm thanh'}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">MP3, WAV, M4A — tối đa 50MB/file</p>
             </div>
             <input
               ref={fileInputRef}
               type="file"
               accept="audio/*"
+              multiple
               className="hidden"
               onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) {
-                  setRecordingFile(file)
-                  handleRecordingUpload(file)
+                if (e.target.files && e.target.files.length > 0) {
+                  handleFilesSelected(e.target.files)
                 }
+                e.target.value = ''
               }}
             />
           </div>
