@@ -204,6 +204,37 @@ export function PromiseResubmit({ raised = false }: PromiseResubmitProps) {
                   </button>
                 </form>
               )}
+
+              {/* Lối thoát khi đề quá sức: gọi thầy đổi bài thay vì bỏ cuộc giữa chừng */}
+              <div
+                className="mt-5 rounded-xl px-4 py-3.5 flex items-start gap-3"
+                style={{ background: 'var(--mint)', border: '1px solid var(--teal-light)' }}
+              >
+                <svg
+                  className="w-5 h-5 shrink-0 mt-0.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="var(--teal)"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.95.68l1.5 4.5a1 1 0 01-.5 1.21l-2.26 1.13a11 11 0 005.5 5.5l1.13-2.26a1 1 0 011.21-.5l4.5 1.5a1 1 0 01.68.95V19a2 2 0 01-2 2h-1C9.72 21 3 14.28 3 6V5z"
+                  />
+                </svg>
+                <p className="font-sans text-sm leading-relaxed" style={{ color: 'var(--navy)' }}>
+                  <strong>Thấy đề quá khó?</strong> Bạn đừng bỏ dở — nhắn hoặc gọi thầy Long qua số{' '}
+                  <a
+                    href="tel:0367832164"
+                    className="font-mono font-bold underline whitespace-nowrap"
+                    style={{ color: 'var(--navy)' }}
+                  >
+                    0367 832 164
+                  </a>{' '}
+                  để thầy đổi sang bài test phù hợp hơn với trình độ của bạn.
+                </p>
+              </div>
             </div>
           </div>
         </div>
