@@ -34,6 +34,15 @@ const COL = {
   PHONE:        32,  // AG
 }
 
+// Manual column the teacher adds to "Thông tin" to force a specific test for one student.
+// Resolved by header text (not a fixed index) so it keeps working if the Form adds questions.
+const OVERRIDE_HEADER = /chỉ\s*định/i
+
+function findOverrideCol(header: string[] | undefined): number {
+  if (!header) return -1
+  return header.findIndex(h => OVERRIDE_HEADER.test((h || '').trim()))
+}
+
 // "Khảo sát test" tab columns (confirmed from row 1 headers)
 // A=STT, B=HO VA TEN, C=TRẠNG THÁI, D=NOTE, E=NGÀY NHẮC, F=LOẠI BÀI TEST
 // G=GRAMMAR(40), H=VOCAB(40), I=READING FULL, J=LISTENING FULL
@@ -188,7 +197,7 @@ function saveTestResultDevMode(data: TestSubmission): void {
 
 // ─── Production: googleapis ───────────────────────────────────────────────────
 
-function makeRecord(row: string[], index: number): StudentRecord {
+function makeRecord(row: string[], index: number, overrideCol = -1): StudentRecord {
   return {
     name:         row[COL.NAME]          || '',
     phone:        row[COL.PHONE]         || '',
@@ -203,6 +212,7 @@ function makeRecord(row: string[], index: number): StudentRecord {
     bestTime:     row[COL.BEST_TIME]     || '',
     workplace:    row[COL.WORKPLACE]     || '',
     learningFormat: row[COL.LEARNING_FORMAT] || '',
+    testOverride: overrideCol >= 0 ? (row[overrideCol] || '') : '',
     rowIndex:     index + 1,
   }
 }
@@ -216,17 +226,19 @@ export async function findStudent(name: string, phone: string): Promise<StudentR
   if (isDev && isPlaceholder) {
     const result = gwsDirect([
       'sheets', 'spreadsheets', 'values', 'get',
-      '--params', JSON.stringify({ spreadsheetId: SHEET_ID, range: `${INFO_TAB}!A:AM` }),
+      '--params', JSON.stringify({ spreadsheetId: SHEET_ID, range: `${INFO_TAB}!A:BA` }),
     ]) as { values?: string[][] }
     rows = result.values || []
   } else {
     const sheets = getSheets()
     const res = await sheets.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
-      range: `${INFO_TAB}!A:AO`,
+      range: `${INFO_TAB}!A:BA`,
     })
     rows = res.data.values || []
   }
+
+  const overrideCol = findOverrideCol(rows[0])
 
   const normPhone = phone.replace(/\D/g, '').slice(-9)
   const normName  = name.trim().toLowerCase()
@@ -246,7 +258,7 @@ export async function findStudent(name: string, phone: string): Promise<StudentR
 
     if (nameMatch && phoneMatch) {
       // Perfect match — stop immediately
-      return makeRecord(row, i)
+      return makeRecord(row, i, overrideCol)
     }
     if ((nameMatch || phoneMatch) && !partialMatch) {
       partialMatch = { row, index: i }
@@ -254,7 +266,7 @@ export async function findStudent(name: string, phone: string): Promise<StudentR
     }
   }
 
-  return partialMatch ? makeRecord(partialMatch.row, partialMatch.index) : null
+  return partialMatch ? makeRecord(partialMatch.row, partialMatch.index, overrideCol) : null
 }
 
 export async function scheduleCallback(

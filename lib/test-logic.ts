@@ -14,6 +14,7 @@ export interface StudentRecord {
   bestTime: string       // col O: Thời gian học tốt nhất
   workplace: string      // col S: Nơi học tập hoặc làm việc hiện tại
   learningFormat: string // col AD: Bạn thích học hình thức nào?
+  testOverride: string   // cột "BÀI TEST CHỈ ĐỊNH" — thầy gõ tay để ép loại bài test
   rowIndex: number
 }
 
@@ -81,7 +82,27 @@ function hasStudiedIeltsBefore(ieltsStudied: string): boolean {
   return !/^(chưa|không|ko)\b/.test(stripped)
 }
 
+// Manual override typed by the teacher in the "BÀI TEST CHỈ ĐỊNH" column.
+// Accepts "1"/"2"/"3", "test 2", or the sheet labels ("test mất gốc" / "partial test" / "test full").
+export function parseTestOverride(raw: string): TestLevel | null {
+  const text = (raw || '').trim().toLowerCase()
+  if (!text) return null
+
+  const digit = text.match(/\b([123])\b/)
+  if (digit) return parseInt(digit[1]) as TestLevel
+
+  if (text.includes('mất gốc')) return 1
+  if (text.includes('partial')) return 2
+  if (text.includes('full')) return 3
+
+  return null
+}
+
 export function determineTestLevel(student: StudentRecord): TestLevel {
+  // Teacher's manual assignment always wins over the automatic rules below
+  const override = parseTestOverride(student.testOverride)
+  if (override) return override
+
   const months = monthsUntilExam(student.examDate)
 
   // Primary rule: exam coming up within 4 months → full test (Test 3) immediately

@@ -29,6 +29,7 @@ function getMockStudent(name: string, phone: string): StudentRecord {
     bestTime: 'Tối',
     workplace: 'THCS Nguyễn Du',
     learningFormat: 'Học online 1 kèm 1',
+    testOverride: '',
     rowIndex: 1,
   }
 }
