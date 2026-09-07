@@ -15,6 +15,10 @@ export type VideoItem = {
   band?: string;
   /** One-line description used as the accessible label + modal caption */
   label: string;
+  /** Hero deck eyebrow. Defaults to "Học viên vừa đạt band". */
+  heroEyebrow?: string;
+  /** Hero deck headline. Defaults to "Nghe {shortName ?? name} kể lại". */
+  heroLine?: string;
   /** Path to the mp4 */
   src: string;
   /** 3:4 still used as the card thumbnail */
