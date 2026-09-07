@@ -6,6 +6,7 @@ import { PromiseResubmit } from '@/components/ui/promise-resubmit'
 import { ReadingListeningExercise } from '@/components/test-exercise/ReadingListeningExercise'
 import { DraftRestoredBanner } from '@/components/test-exercise/DraftRestoredBanner'
 import { TEST2_SECTIONS, type TestSection } from '@/lib/test2-content'
+import { BookOpenIcon, HeadphonesIcon, WarningIcon } from '@/components/ui/icons'
 import {
   loadStudentInfo,
   loadDraft,
@@ -21,10 +22,10 @@ const TEST_LEVEL = 2
 const WRITING_PROMPT =
   'Some people think the government should invest more in teaching science than other subjects to help a country develop and progress. Do you agree or disagree with this opinion?'
 
-const EXERCISE_CARDS: { id: TestSection['id']; icon: string; title: string; shortLabel: string; accent: string }[] = [
-  { id: 'reading', icon: '📖', title: 'Reading — Tribal tourism', shortLabel: 'Reading', accent: 'blue' },
-  { id: 'listeningS1', icon: '🎧', title: 'Listening Section 1', shortLabel: 'Listening 1', accent: 'green' },
-  { id: 'listeningS2', icon: '🎧', title: 'Listening Section 2', shortLabel: 'Listening 2', accent: 'green' },
+const EXERCISE_CARDS: { id: TestSection['id']; Icon: typeof BookOpenIcon; title: string; shortLabel: string; accent: string }[] = [
+  { id: 'reading', Icon: BookOpenIcon, title: 'Reading — Tribal tourism', shortLabel: 'Reading', accent: 'blue' },
+  { id: 'listeningS1', Icon: HeadphonesIcon, title: 'Listening Section 1', shortLabel: 'Listening 1', accent: 'green' },
+  { id: 'listeningS2', Icon: HeadphonesIcon, title: 'Listening Section 2', shortLabel: 'Listening 2', accent: 'green' },
 ]
 
 const EXERCISE_ORDER: TestSection['id'][] = ['reading', 'listeningS1', 'listeningS2']
@@ -223,7 +224,7 @@ export default function Test2Page() {
                 onClick={() => setActiveExerciseId(card.id)}
                 className={`w-full flex items-center gap-4 bg-white border-2 ${borderColor} rounded-xl p-4 transition-colors group text-left`}
               >
-                <span className="text-2xl">{card.icon}</span>
+                <card.Icon className="w-6 h-6 shrink-0" style={{ color: card.accent === 'blue' ? '#2563eb' : '#16a34a' }} />
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-800 transition-colors">
                     {card.title} <span className="text-gray-400 font-normal text-xs">— {section.timeLabel}</span>
@@ -320,7 +321,7 @@ export default function Test2Page() {
           </button>
           {missingParts.length > 0 && hasUnsubmittedWork && (
             <p className="text-center text-xs font-medium font-sans" style={{ color: 'var(--navy)' }}>
-              ⚠️ Bạn chưa làm: {missingParts.join(', ')} — vẫn nộp được phần đã làm nếu cần.
+              <WarningIcon className="w-4 h-4 inline-block align-[-2px] mr-1" />Bạn chưa làm: {missingParts.join(', ')} — vẫn nộp được phần đã làm nếu cần.
             </p>
           )}
           <p className="text-center text-gray-400 text-xs">

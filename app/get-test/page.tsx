@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { saveStudentInfo } from '@/lib/test-draft'
+import { CogIcon } from '@/components/ui/icons'
 
 export default function GetTestPage() {
   const router = useRouter()
@@ -55,7 +56,7 @@ export default function GetTestPage() {
         {/* Dev mode banner */}
         {process.env.NODE_ENV === 'development' && (
           <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 mb-4 text-xs text-amber-800 font-mono">
-            <strong>⚙️ DEV MODE:</strong> Google Sheet bị bỏ qua. Nhập bất kỳ tên/SĐT để test.<br />
+            <strong><CogIcon className="w-4 h-4 inline-block align-[-2px] mr-1" />DEV MODE:</strong> Google Sheet bị bỏ qua. Nhập bất kỳ tên/SĐT để test.<br />
             Thêm <code>test2</code> hoặc <code>test3</code> vào tên để thử Test 2/3.
           </div>
         )}

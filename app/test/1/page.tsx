@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { PromiseResubmit } from '@/components/ui/promise-resubmit'
 import { DraftRestoredBanner } from '@/components/test-exercise/DraftRestoredBanner'
+import { BookStackIcon, PencilSquareIcon } from '@/components/ui/icons'
 import {
   loadStudentInfo,
   loadDraft,
@@ -147,7 +148,7 @@ export default function Test1Page() {
             className="block bg-white border-2 border-blue-200 hover:border-blue-400 rounded-xl p-5 transition-colors group"
           >
             <div className="flex items-start gap-3">
-              <span className="text-2xl">📝</span>
+              <PencilSquareIcon className="w-6 h-6 shrink-0 text-blue-600" />
               <div>
                 <h3 className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
                   Bài test Grammar
@@ -164,7 +165,7 @@ export default function Test1Page() {
             className="block bg-white border-2 border-purple-200 hover:border-purple-400 rounded-xl p-5 transition-colors group"
           >
             <div className="flex items-start gap-3">
-              <span className="text-2xl">📚</span>
+              <BookStackIcon className="w-6 h-6 shrink-0 text-purple-600" />
               <div>
                 <h3 className="font-semibold text-gray-800 group-hover:text-purple-600 transition-colors">
                   Bài test Vocabulary

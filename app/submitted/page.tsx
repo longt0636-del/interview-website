@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { CalendarIcon, ChatIcon, PhoneIcon, TargetIcon } from '@/components/ui/icons'
 
 export default function SubmittedPage() {
   const [suggestedClass, setSuggestedClass] = useState('')
@@ -44,19 +45,19 @@ export default function SubmittedPage() {
           <h2 className="font-semibold text-blue-800 mb-3">Bước tiếp theo</h2>
           <ul className="text-sm text-blue-700 space-y-2">
             <li className="flex gap-2">
-              <span className="shrink-0">📞</span>
+              <PhoneIcon className="w-4 h-4 shrink-0 mt-0.5" />
               <span>Thầy Long sẽ gọi điện hoặc nhắn Zalo để tư vấn kết quả.</span>
             </li>
             <li className="flex gap-2">
-              <span className="shrink-0">📅</span>
+              <CalendarIcon className="w-4 h-4 shrink-0 mt-0.5" />
               <span>Sắp xếp <strong>2 buổi học thử</strong> (phí cam kết 50.000đ, hoàn lại 40.000đ sau học thử).</span>
             </li>
             <li className="flex gap-2">
-              <span className="shrink-0">🎯</span>
+              <TargetIcon className="w-4 h-4 shrink-0 mt-0.5" />
               <span>Nhận lộ trình học cá nhân hóa phù hợp với mục tiêu và trình độ.</span>
             </li>
             <li className="flex gap-2">
-              <span className="shrink-0">💬</span>
+              <ChatIcon className="w-4 h-4 shrink-0 mt-0.5" />
               <span>
                 Muốn trao đổi ngay? Chủ động nhắn Zalo cho thầy Long:{' '}
                 <a

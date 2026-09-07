@@ -7,6 +7,7 @@ import { BlankFillText } from './BlankFillText'
 import { MatchingQuestion } from './MatchingQuestion'
 import { McqQuestion } from './McqQuestion'
 import { McqMultiQuestion } from './McqMultiQuestion'
+import { HeadphonesIcon, LightbulbIcon } from '@/components/ui/icons'
 import { HighlightableText, type HighlightRange } from './HighlightableText'
 import { isAnswerCorrect } from './normalize'
 
@@ -329,7 +330,7 @@ export function ReadingListeningExercise({
               </h3>
             )}
             <p className="text-sm font-sans mb-4" style={{ color: 'var(--ink)', opacity: 0.55 }}>
-              💡 Kéo chuột để bôi đen câu quan trọng — bấm vào phần đã tô để bỏ đánh dấu.
+              <LightbulbIcon className="w-4 h-4 inline-block align-[-2px] mr-1" />Kéo chuột để bôi đen câu quan trọng — bấm vào phần đã tô để bỏ đánh dấu.
             </p>
             {section.passageParagraphs?.map((p, i) => (
               <div key={i} className="mb-4">
@@ -355,7 +356,7 @@ export function ReadingListeningExercise({
             <div className="shrink-0 p-4 border-b" style={{ background: '#fff', borderColor: '#E5E7EB' }}>
               <div className="max-w-4xl mx-auto">
                 <p className="text-sm font-semibold font-sans mb-2" style={{ color: 'var(--navy)' }}>
-                  🎧 Nghe audio (có thể tua lại nhiều lần)
+                  <HeadphonesIcon className="w-4 h-4 inline-block align-[-2px] mr-1" />Nghe audio (có thể tua lại nhiều lần)
                 </p>
                 <audio controls src={section.audioSrc} className="w-full" />
               </div>

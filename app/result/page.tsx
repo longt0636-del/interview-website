@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { loadStudentInfo } from '@/lib/test-draft'
+import { WarningIcon } from '@/components/ui/icons'
 
 interface WritingFeedbackItem {
   wordCount: number
@@ -220,7 +221,7 @@ export default function ResultPage() {
           {result.specialNotice && (
             <div className="mt-4 rounded-xl p-3" style={{ background: '#FEF3C7', border: '1px solid #EF9F27' }}>
               <p className="font-sans text-xs leading-relaxed" style={{ color: '#92400E' }}>
-                <span className="font-semibold">⚠️ Lưu ý:</span>{' '}
+                <span className="font-semibold"><WarningIcon className="w-4 h-4 inline-block align-[-2px] mr-1" />Lưu ý:</span>{' '}
                 Năng lực thực tế của bạn phù hợp với lớp Nền Tảng (3–4), nhưng do thời gian thi gấp, thầy đề xuất lớp Căn Bản để đẩy nhanh tiến độ.
               </p>
             </div>

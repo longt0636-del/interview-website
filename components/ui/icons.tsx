@@ -128,6 +128,87 @@ export function UsersIcon(props: IconProps) {
   );
 }
 
+/** Headphones — listening sections */
+export function HeadphonesIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 14v-2a8 8 0 0 1 16 0v2" />
+      <path d="M4 14h2.2a1 1 0 0 1 1 1v3.6a1 1 0 0 1-1 1H5.4A1.4 1.4 0 0 1 4 18.2V14Z" />
+      <path d="M20 14h-2.2a1 1 0 0 0-1 1v3.6a1 1 0 0 0 1 1h.8a1.4 1.4 0 0 0 1.4-1.4V14Z" />
+    </Icon>
+  );
+}
+
+/** Stacked books — study material */
+export function BookStackIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="4" y="3.5" width="5" height="17" rx="1.2" />
+      <rect x="10.5" y="3.5" width="5" height="17" rx="1.2" />
+      <path d="M17.4 5.6l3 .8-3.6 13.4-2.4-.7" />
+    </Icon>
+  );
+}
+
+/** Microphone — Speaking recording */
+export function MicIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="9" y="2.5" width="6" height="11" rx="3" />
+      <path d="M5.5 11a6.5 6.5 0 0 0 13 0" />
+      <path d="M12 17.5v4M8.5 21.5h7" />
+    </Icon>
+  );
+}
+
+/** Phone — contact step */
+export function PhoneIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M7.2 3.5H4.8A1.8 1.8 0 0 0 3 5.4C3 13.9 10.1 21 18.6 21a1.8 1.8 0 0 0 1.9-1.8v-2.4a1.2 1.2 0 0 0-.95-1.17l-3.1-.66a1.2 1.2 0 0 0-1.26.55l-.85 1.4a13.4 13.4 0 0 1-5.33-5.33l1.4-.85a1.2 1.2 0 0 0 .55-1.26l-.66-3.1A1.2 1.2 0 0 0 7.2 3.5Z" />
+    </Icon>
+  );
+}
+
+/** Speech bubble — feedback / consultation */
+export function ChatIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M20.5 12.4c0 4-3.8 7.2-8.5 7.2-1 0-2-.15-2.9-.42L4 21l1.4-3.5A6.9 6.9 0 0 1 3.5 12.4C3.5 8.4 7.3 5.2 12 5.2s8.5 3.2 8.5 7.2Z" />
+    </Icon>
+  );
+}
+
+/** Warning triangle */
+export function WarningIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M10.7 4.1 2.9 17.5a1.5 1.5 0 0 0 1.3 2.3h15.6a1.5 1.5 0 0 0 1.3-2.3L13.3 4.1a1.5 1.5 0 0 0-2.6 0Z" />
+      <path d="M12 9.5v4M12 16.8h.01" />
+    </Icon>
+  );
+}
+
+/** Lightbulb — tip callout */
+export function LightbulbIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M9.2 17.5a6 6 0 1 1 5.6 0" />
+      <path d="M9.2 17.5h5.6M10 20.5h4" />
+    </Icon>
+  );
+}
+
+/** Cog — dev-mode banner */
+export function CogIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="12" r="3.2" />
+      <path d="M12 2.8v2.4M12 18.8v2.4M21.2 12h-2.4M5.2 12H2.8M18.5 5.5l-1.7 1.7M7.2 16.8l-1.7 1.7M18.5 18.5l-1.7-1.7M7.2 7.2 5.5 5.5" />
+    </Icon>
+  );
+}
+
 /** Arrow right — inline link affordance */
 export function ArrowRightIcon(props: IconProps) {
   return (

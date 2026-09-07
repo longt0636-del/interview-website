@@ -7,6 +7,7 @@ import { PromiseResubmit } from '@/components/ui/promise-resubmit'
 import { ReadingListeningExercise } from '@/components/test-exercise/ReadingListeningExercise'
 import { DraftRestoredBanner } from '@/components/test-exercise/DraftRestoredBanner'
 import { TEST3_SECTIONS } from '@/lib/test3-content'
+import { BookOpenIcon, HeadphonesIcon, MicIcon, WarningIcon } from '@/components/ui/icons'
 import {
   loadStudentInfo,
   loadDraft,
@@ -28,14 +29,14 @@ interface RecordingItem {
   error: string
 }
 
-const EXERCISE_CARDS: { id: string; icon: string; title: string; shortLabel: string; group: 'reading' | 'listening' }[] = [
-  { id: 'readingP1', icon: '📖', title: 'Reading Passage 1 — Roman tunnels', shortLabel: 'Reading P1', group: 'reading' },
-  { id: 'readingP2', icon: '📖', title: 'Reading Passage 2 — Changes in reading habits', shortLabel: 'Reading P2', group: 'reading' },
-  { id: 'readingP3', icon: '📖', title: 'Reading Passage 3 — Attitudes towards AI', shortLabel: 'Reading P3', group: 'reading' },
-  { id: 'listeningS1', icon: '🎧', title: 'Listening Part 1 — Holiday rental', shortLabel: 'Listening P1', group: 'listening' },
-  { id: 'listeningS2', icon: '🎧', title: 'Listening Part 2 — Traffic & recreation ground', shortLabel: 'Listening P2', group: 'listening' },
-  { id: 'listeningS3', icon: '🎧', title: 'Listening Part 3 — Bike-sharing schemes', shortLabel: 'Listening P3', group: 'listening' },
-  { id: 'listeningS4', icon: '🎧', title: 'Listening Part 4 — The dodo bird', shortLabel: 'Listening P4', group: 'listening' },
+const EXERCISE_CARDS: { id: string; Icon: typeof BookOpenIcon; title: string; shortLabel: string; group: 'reading' | 'listening' }[] = [
+  { id: 'readingP1', Icon: BookOpenIcon, title: 'Reading Passage 1 — Roman tunnels', shortLabel: 'Reading P1', group: 'reading' },
+  { id: 'readingP2', Icon: BookOpenIcon, title: 'Reading Passage 2 — Changes in reading habits', shortLabel: 'Reading P2', group: 'reading' },
+  { id: 'readingP3', Icon: BookOpenIcon, title: 'Reading Passage 3 — Attitudes towards AI', shortLabel: 'Reading P3', group: 'reading' },
+  { id: 'listeningS1', Icon: HeadphonesIcon, title: 'Listening Part 1 — Holiday rental', shortLabel: 'Listening P1', group: 'listening' },
+  { id: 'listeningS2', Icon: HeadphonesIcon, title: 'Listening Part 2 — Traffic & recreation ground', shortLabel: 'Listening P2', group: 'listening' },
+  { id: 'listeningS3', Icon: HeadphonesIcon, title: 'Listening Part 3 — Bike-sharing schemes', shortLabel: 'Listening P3', group: 'listening' },
+  { id: 'listeningS4', Icon: HeadphonesIcon, title: 'Listening Part 4 — The dodo bird', shortLabel: 'Listening P4', group: 'listening' },
 ]
 
 const EXERCISE_ORDER = EXERCISE_CARDS.map((c) => c.id)
@@ -356,7 +357,7 @@ export default function Test3Page() {
                   onClick={() => setActiveExerciseId(card.id)}
                   className="w-full flex items-center gap-4 bg-white border-2 border-blue-200 hover:border-blue-400 rounded-xl p-4 transition-colors group text-left"
                 >
-                  <span className="text-2xl">{card.icon}</span>
+                  <card.Icon className="w-6 h-6 shrink-0" style={{ color: card.group === 'reading' ? '#2563eb' : '#16a34a' }} />
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
                       {card.title} <span className="text-gray-400 font-normal text-xs">— {section.timeLabel}</span>
@@ -387,7 +388,7 @@ export default function Test3Page() {
                   onClick={() => setActiveExerciseId(card.id)}
                   className="w-full flex items-center gap-4 bg-white border-2 border-green-200 hover:border-green-400 rounded-xl p-4 transition-colors group text-left"
                 >
-                  <span className="text-2xl">{card.icon}</span>
+                  <card.Icon className="w-6 h-6 shrink-0" style={{ color: card.group === 'reading' ? '#2563eb' : '#16a34a' }} />
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-800 group-hover:text-green-600 transition-colors">
                       {card.title} <span className="text-gray-400 font-normal text-xs">— {section.timeLabel}</span>
@@ -552,9 +553,12 @@ export default function Test3Page() {
                     <button
                       type="button"
                       onClick={() => removeRecording(r.id)}
-                      className="shrink-0 text-gray-400 hover:text-red-500 text-sm px-1"
+                      aria-label={`Xoá file ghi âm ${r.fileName}`}
+                      className="shrink-0 flex h-11 w-11 items-center justify-center rounded-lg text-gray-400 transition-colors hover:text-red-500 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-red-200"
                     >
-                      ✕
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" aria-hidden="true">
+                        <path d="M6 6l12 12M18 6L6 18" />
+                      </svg>
                     </button>
                   </div>
                 ))}
@@ -565,7 +569,7 @@ export default function Test3Page() {
               onClick={() => fileInputRef.current?.click()}
               className="border-2 border-dashed border-gray-200 hover:border-blue-400 rounded-xl p-6 text-center cursor-pointer transition-colors"
             >
-              <p className="text-2xl mb-2">🎙️</p>
+              <MicIcon className="w-7 h-7 mx-auto mb-2 text-gray-400" />
               <p className="text-sm text-gray-500">
                 {recordings.length > 0 ? 'Bấm để thêm file khác' : 'Bấm để chọn file âm thanh'}
               </p>
@@ -606,7 +610,7 @@ export default function Test3Page() {
           </button>
           {missingParts.length > 0 && hasUnsubmittedWork && (
             <p className="text-center text-xs font-medium font-sans" style={{ color: 'var(--navy)' }}>
-              ⚠️ Bạn chưa làm: {missingParts.join(', ')} — vẫn nộp được phần đã làm nếu cần.
+              <WarningIcon className="w-4 h-4 inline-block align-[-2px] mr-1" />Bạn chưa làm: {missingParts.join(', ')} — vẫn nộp được phần đã làm nếu cần.
             </p>
           )}
           <p className="text-center text-gray-400 text-xs">
