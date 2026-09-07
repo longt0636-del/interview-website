@@ -4,14 +4,19 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { PromiseResubmit } from '@/components/ui/promise-resubmit'
 import { ReadingListeningExercise } from '@/components/test-exercise/ReadingListeningExercise'
+import { DraftRestoredBanner } from '@/components/test-exercise/DraftRestoredBanner'
 import { TEST2_SECTIONS, type TestSection } from '@/lib/test2-content'
+import {
+  loadStudentInfo,
+  loadDraft,
+  saveDraft,
+  clearDraft,
+  draftHasWork,
+  type StudentInfo,
+  type ExerciseState,
+} from '@/lib/test-draft'
 
-interface StudentInfo {
-  studentName: string
-  studentPhone: string
-  suggestedClass: string
-  testLevel: number
-}
+const TEST_LEVEL = 2
 
 const WRITING_PROMPT =
   'Some people think the government should invest more in teaching science than other subjects to help a country develop and progress. Do you agree or disagree with this opinion?'
@@ -29,23 +34,78 @@ function getNextExerciseId(current: TestSection['id']): TestSection['id'] | null
   return idx >= 0 && idx < EXERCISE_ORDER.length - 1 ? EXERCISE_ORDER[idx + 1] : null
 }
 
+type Test2Scores = Record<TestSection['id'], { score: number; total: number } | null>
+
+const EMPTY_SCORES: Test2Scores = {
+  reading: null,
+  listeningS1: null,
+  listeningS2: null,
+}
+
 export default function Test2Page() {
   const router = useRouter()
   const [student, setStudent] = useState<StudentInfo | null>(null)
-  const [scores, setScores] = useState<Record<TestSection['id'], { score: number; total: number } | null>>({
-    reading: null,
-    listeningS1: null,
-    listeningS2: null,
-  })
+  const [scores, setScores] = useState<Test2Scores>({ ...EMPTY_SCORES })
   const [activeExerciseId, setActiveExerciseId] = useState<TestSection['id'] | null>(null)
   const [writingTask2, setWritingTask2] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // Bài làm dở của từng phần Reading/Listening — giữ ở trang cha thay vì trong
+  // component bài tập, vì component đó bị unmount mỗi lần học viên đóng bài lại.
+  const [exerciseStates, setExerciseStates] = useState<Record<string, ExerciseState>>({})
+  // Chỉ bắt đầu tự lưu SAU khi đã đọc xong bản nháp cũ, nếu không lần lưu đầu tiên
+  // (state còn rỗng) sẽ ghi đè mất bài làm vừa khôi phục.
+  const [hydrated, setHydrated] = useState(false)
+  const [restoredAt, setRestoredAt] = useState(0)
+
+  const studentPhone = student?.studentPhone ?? ''
+
   useEffect(() => {
-    const info = sessionStorage.getItem('studentInfo')
-    if (info) setStudent(JSON.parse(info))
+    const info = loadStudentInfo()
+    if (info) setStudent(info)
+
+    const draft = loadDraft(TEST_LEVEL, info?.studentPhone ?? '')
+    if (draftHasWork(draft) && draft) {
+      // Chép theo đúng danh sách phần của Test 2 thay vì spread thẳng, để bản nháp
+      // cũ (hoặc bị sửa tay) không nhét được key lạ / giá trị undefined vào state.
+      const restored: Test2Scores = { ...EMPTY_SCORES }
+      for (const id of Object.keys(EMPTY_SCORES) as TestSection['id'][]) {
+        restored[id] = draft.scores[id] ?? null
+      }
+      setScores(restored)
+      setExerciseStates(draft.exercises)
+      setWritingTask2(draft.writingTask2)
+      setRestoredAt(draft.savedAt)
+    }
+    setHydrated(true)
   }, [])
+
+  // Tự lưu sau mỗi thay đổi. setTimeout + clearTimeout ở cleanup tạo hiệu ứng
+  // debounce: gõ liên tục thì chỉ ghi một lần sau khi ngừng 500ms.
+  useEffect(() => {
+    if (!hydrated) return
+    const timer = setTimeout(() => {
+      saveDraft(TEST_LEVEL, studentPhone, {
+        exercises: exerciseStates,
+        scores,
+        writingTask1: '',
+        writingTask2,
+        recordings: [],
+        grammarScore: '',
+        vocabScore: '',
+      })
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [hydrated, studentPhone, exerciseStates, scores, writingTask2])
+
+  function handleDiscardDraft() {
+    clearDraft(TEST_LEVEL, studentPhone)
+    setScores({ ...EMPTY_SCORES })
+    setExerciseStates({})
+    setWritingTask2('')
+    setRestoredAt(0)
+  }
 
   const readingScore = scores.reading ? `${scores.reading.score}/${scores.reading.total}` : ''
   const listeningS1 = scores.listeningS1 ? `${scores.listeningS1.score}/${scores.listeningS1.total}` : ''
@@ -57,9 +117,39 @@ export default function Test2Page() {
 
   const missingParts: string[] = []
   if (!writingTask2.trim()) missingParts.push('Writing Task 2')
+  if (!Object.values(scores).some(Boolean)) missingParts.push('Reading & Listening')
+
+  const hasUnsubmittedWork =
+    Object.values(scores).some(Boolean) ||
+    Object.values(exerciseStates).some((ex) => Object.keys(ex.answers ?? {}).length > 0) ||
+    !!writingTask2.trim()
+
+  // Lớp bảo vệ cuối: bài đã được tự lưu, nhưng localStorage có thể bị chặn (chế độ
+  // ẩn danh, trình duyệt cấm site data) — lúc đó cảnh báo này là thứ duy nhất cứu
+  // được học viên khỏi việc lỡ tay đóng tab.
+  useEffect(() => {
+    if (!hasUnsubmittedWork || submitting) return
+    function warn(e: BeforeUnloadEvent) {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [hasUnsubmittedWork, submitting])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    // Cho phép nộp bài dở — nhận bài thiếu vẫn hơn để học viên mất trắng công sức
+    // vì chưa kịp làm hết trong một lần ngồi.
+    if (missingParts.length > 0) {
+      const ok = window.confirm(
+        `Bạn chưa hoàn thành: ${missingParts.join(', ')}.\n\n` +
+        'Vẫn nộp phần đã làm cho thầy Long? Thầy sẽ nhận được đúng những gì bạn đã hoàn thành.'
+      )
+      if (!ok) return
+    }
+
     setError('')
     setSubmitting(true)
     try {
@@ -74,10 +164,13 @@ export default function Test2Page() {
           listeningS1,
           listeningS2,
           writingTask2,
+          missingParts,
         }),
       })
       if (!res.ok) throw new Error()
       const data = await res.json()
+      // Nộp xong mới xoá bản nháp — nếu nộp lỗi, bài làm vẫn còn nguyên trên máy.
+      clearDraft(TEST_LEVEL, studentPhone)
       sessionStorage.setItem('testResult', JSON.stringify(data))
       router.push('/result')
     } catch {
@@ -102,6 +195,8 @@ export default function Test2Page() {
             </p>
           )}
         </div>
+
+        {restoredAt > 0 && <DraftRestoredBanner savedAt={restoredAt} onDiscard={handleDiscardDraft} />}
 
         {/* Instructions */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 mb-6">
@@ -162,6 +257,10 @@ export default function Test2Page() {
             }}
             onGoToNext={(id) => setActiveExerciseId(id)}
             onClose={() => setActiveExerciseId(null)}
+            initialState={exerciseStates[activeExerciseId] ?? null}
+            onStateChange={(state) =>
+              setExerciseStates((prev) => ({ ...prev, [activeExerciseId]: state }))
+            }
           />
         )}
 
@@ -209,19 +308,24 @@ export default function Test2Page() {
 
           <button
             type="submit"
-            disabled={submitting || missingParts.length > 0}
+            disabled={submitting || !hasUnsubmittedWork}
             className="w-full disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold font-sans py-3 rounded-xl transition-opacity hover:opacity-90"
             style={{ background: 'var(--teal)' }}
           >
-            {submitting ? 'Đang nộp bài...' : 'Nộp bài cho Thầy Long'}
+            {submitting
+              ? 'Đang nộp bài...'
+              : missingParts.length > 0
+              ? 'Nộp phần đã làm cho Thầy Long'
+              : 'Nộp bài cho Thầy Long'}
           </button>
-          {missingParts.length > 0 && (
-            <p className="text-center text-red-500 text-xs font-medium">
-              Cần hoàn thành trước khi nộp: {missingParts.join(', ')}
+          {missingParts.length > 0 && hasUnsubmittedWork && (
+            <p className="text-center text-xs font-medium font-sans" style={{ color: 'var(--navy)' }}>
+              ⚠️ Bạn chưa làm: {missingParts.join(', ')} — vẫn nộp được phần đã làm nếu cần.
             </p>
           )}
           <p className="text-center text-gray-400 text-xs">
-            Bạn có thể quay lại trang này bất cứ lúc nào để hoàn thành và nộp.
+            Bài làm được tự động lưu trên máy này. Đóng trang hay mất điện xong mở lại
+            vẫn thấy nguyên bài đang làm dở.
           </p>
         </form>
         <PromiseResubmit raised={!!activeExerciseId} />

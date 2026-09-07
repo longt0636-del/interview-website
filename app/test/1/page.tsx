@@ -3,13 +3,17 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { PromiseResubmit } from '@/components/ui/promise-resubmit'
+import { DraftRestoredBanner } from '@/components/test-exercise/DraftRestoredBanner'
+import {
+  loadStudentInfo,
+  loadDraft,
+  saveDraft,
+  clearDraft,
+  draftHasWork,
+  type StudentInfo,
+} from '@/lib/test-draft'
 
-interface StudentInfo {
-  studentName: string
-  studentPhone: string
-  suggestedClass: string
-  testLevel: number
-}
+const TEST_LEVEL = 1
 
 export default function Test1Page() {
   const router = useRouter()
@@ -19,13 +23,64 @@ export default function Test1Page() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // Chỉ bắt đầu tự lưu SAU khi đã đọc xong bản nháp cũ, nếu không lần lưu đầu tiên
+  // (state còn rỗng) sẽ ghi đè mất điểm vừa khôi phục.
+  const [hydrated, setHydrated] = useState(false)
+  const [restoredAt, setRestoredAt] = useState(0)
+
+  const studentPhone = student?.studentPhone ?? ''
+
   useEffect(() => {
-    const info = sessionStorage.getItem('studentInfo')
-    if (info) setStudent(JSON.parse(info))
+    const info = loadStudentInfo()
+    if (info) setStudent(info)
+
+    const draft = loadDraft(TEST_LEVEL, info?.studentPhone ?? '')
+    if (draftHasWork(draft) && draft) {
+      setGrammarScore(draft.grammarScore)
+      setVocabScore(draft.vocabScore)
+      setRestoredAt(draft.savedAt)
+    }
+    setHydrated(true)
   }, [])
+
+  useEffect(() => {
+    if (!hydrated) return
+    const timer = setTimeout(() => {
+      saveDraft(TEST_LEVEL, studentPhone, {
+        exercises: {},
+        scores: {},
+        writingTask1: '',
+        writingTask2: '',
+        recordings: [],
+        grammarScore,
+        vocabScore,
+      })
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [hydrated, studentPhone, grammarScore, vocabScore])
+
+  function handleDiscardDraft() {
+    clearDraft(TEST_LEVEL, studentPhone)
+    setGrammarScore('')
+    setVocabScore('')
+    setRestoredAt(0)
+  }
+
+  const missingParts: string[] = []
+  if (!grammarScore.trim()) missingParts.push('điểm Grammar')
+  if (!vocabScore.trim()) missingParts.push('điểm Vocabulary')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    if (missingParts.length > 0) {
+      const ok = window.confirm(
+        `Bạn chưa điền: ${missingParts.join(', ')}.\n\n` +
+        'Vẫn nộp phần đã làm cho thầy Long?'
+      )
+      if (!ok) return
+    }
+
     setError('')
     setSubmitting(true)
     try {
@@ -38,10 +93,13 @@ export default function Test1Page() {
           testLevel: 1,
           grammarScore,
           vocabScore,
+          missingParts,
         }),
       })
       if (!res.ok) throw new Error()
       const data = await res.json()
+      // Nộp xong mới xoá bản nháp — nếu nộp lỗi, điểm đã điền vẫn còn nguyên.
+      clearDraft(TEST_LEVEL, studentPhone)
       sessionStorage.setItem('testResult', JSON.stringify(data))
       router.push('/result')
     } catch {
@@ -66,6 +124,8 @@ export default function Test1Page() {
             </p>
           )}
         </div>
+
+        {restoredAt > 0 && <DraftRestoredBanner savedAt={restoredAt} onDiscard={handleDiscardDraft} />}
 
         {/* Instructions */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 mb-6">
@@ -159,7 +219,7 @@ export default function Test1Page() {
             {submitting ? 'Đang nộp bài...' : 'Nộp bài cho Thầy Long'}
           </button>
           <p className="text-center text-gray-400 text-xs">
-            Bạn có thể quay lại trang này bất cứ lúc nào để nộp bài.
+            Điểm bạn điền được tự động lưu trên máy này — đóng trang xong mở lại vẫn còn.
           </p>
         </form>
         <PromiseResubmit />

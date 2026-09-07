@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { loadStudentInfo } from '@/lib/test-draft'
 
 function getMinDate() {
   const d = new Date()
@@ -27,10 +28,8 @@ export function PromiseResubmit({ raised = false }: PromiseResubmitProps) {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    try {
-      const info = sessionStorage.getItem('studentInfo')
-      if (info) setStudentName(JSON.parse(info).studentName || '')
-    } catch {}
+    const info = loadStudentInfo()
+    if (info) setStudentName(info.studentName || '')
   }, [])
 
   useEffect(() => {

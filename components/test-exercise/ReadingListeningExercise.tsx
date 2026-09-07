@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { TestSection, McqMultiGroup } from '@/lib/test2-content'
+import type { ExerciseState } from '@/lib/test-draft'
 import { BlankFillText } from './BlankFillText'
 import { MatchingQuestion } from './MatchingQuestion'
 import { McqQuestion } from './McqQuestion'
@@ -30,6 +31,10 @@ interface ReadingListeningExerciseProps {
   onComplete: (score: number, total: number) => void
   onGoToNext?: (id: TestSection['id']) => void
   onClose: () => void
+  /** Bài làm dở đã lưu của đúng phần này — dùng để dựng lại khi học viên mở lại. */
+  initialState?: ExerciseState | null
+  /** Báo lên trang cha mỗi khi có thay đổi, để trang cha lưu xuống localStorage. */
+  onStateChange?: (state: ExerciseState) => void
 }
 
 function formatTime(totalSeconds: number) {
@@ -44,14 +49,31 @@ export function ReadingListeningExercise({
   onComplete,
   onGoToNext,
   onClose,
+  initialState,
+  onStateChange,
 }: ReadingListeningExerciseProps) {
-  const [answers, setAnswers] = useState<Record<number, string>>({})
-  const [submitted, setSubmitted] = useState(false)
-  const [score, setScore] = useState(0)
-  const [seconds, setSeconds] = useState(0)
+  // Khởi tạo thẳng từ bài làm đã lưu. Trang cha gắn key={activeExerciseId} nên mỗi
+  // phần được mount lại một lần, initialState chỉ đọc đúng một lần cho mỗi phần.
+  const [answers, setAnswers] = useState<Record<number, string>>(() => initialState?.answers ?? {})
+  const [submitted, setSubmitted] = useState(() => initialState?.submitted ?? false)
+  const [score, setScore] = useState(() => initialState?.score ?? 0)
+  const [seconds, setSeconds] = useState(() => initialState?.seconds ?? 0)
   const [mobileTab, setMobileTab] = useState<'content' | 'questions'>('content')
-  const [highlights, setHighlights] = useState<Record<number, HighlightRange[]>>({})
+  const [highlights, setHighlights] = useState<Record<number, HighlightRange[]>>(
+    () => initialState?.highlights ?? {}
+  )
   const hasPassage = !!section.passageParagraphs
+
+  // Giữ callback trong ref để effect bên dưới không phụ thuộc vào identity của nó —
+  // trang cha truyền hàm inline, nếu đưa thẳng vào deps sẽ chạy lại mỗi lần render.
+  const onStateChangeRef = useRef(onStateChange)
+  useEffect(() => {
+    onStateChangeRef.current = onStateChange
+  })
+
+  useEffect(() => {
+    onStateChangeRef.current?.({ answers, highlights, submitted, score, seconds })
+  }, [answers, highlights, submitted, score, seconds])
 
   function addHighlight(paraIdx: number, start: number, end: number) {
     setHighlights((prev) => {
@@ -132,7 +154,11 @@ export function ReadingListeningExercise({
 
   function handleClose() {
     if (!submitted && Object.keys(answers).length > 0) {
-      const ok = window.confirm('Thoát mà không lưu kết quả phần này?')
+      const ok = window.confirm(
+        'Phần này chưa bấm "Hoàn thành" nên chưa được chấm điểm.\n\n' +
+        'Bài làm dở của bạn đã được lưu — mở lại phần này bất cứ lúc nào sẽ thấy nguyên các câu đã làm.\n\n' +
+        'Thoát ra ngoài bây giờ?'
+      )
       if (!ok) return
     }
     onClose()

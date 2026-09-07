@@ -94,6 +94,7 @@ export async function POST(req: NextRequest) {
         ieltsStudied,
         gradeEstimate,
         specialNotice,
+        missingParts: Array.isArray(body.missingParts) ? body.missingParts : [],
         writingFeedback: {
           task1: task1Analysis,
           task2: task2Analysis,

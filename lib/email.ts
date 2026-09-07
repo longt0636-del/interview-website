@@ -17,6 +17,8 @@ export interface EmailExtras {
   ieltsStudied?: string
   gradeEstimate?: string
   specialNotice?: string | null
+  /** Các phần học viên chưa làm khi bấm nộp — rỗng nghĩa là nộp đầy đủ. */
+  missingParts?: string[]
   writingFeedback?: {
     task2?: { wordCount: number; hasEnoughWords: boolean; vocabLevel: string; grammarNote: string }
     task1?: { wordCount: number; hasEnoughWords: boolean; vocabLevel: string; grammarNote: string }
@@ -106,12 +108,19 @@ Bạn thích học hình thức nào: ${extras.learningFormat || 'Chưa điền'
       ].filter(Boolean).join('\n')
     : ''
 
+  // Học viên giờ được phép nộp bài dở (trước đây nút Nộp bị khoá tới khi đủ hết),
+  // nên email phải nói rõ đây là bài thiếu để thầy không tưởng là làm kém.
+  const isPartial = !!extras?.missingParts?.length
+  const partialSection = isPartial
+    ? `\n⚠️ BÀI NỘP CHƯA ĐẦY ĐỦ — học viên chủ động nộp phần đã làm.\nChưa làm: ${extras!.missingParts!.join(', ')}\n`
+    : ''
+
   const zaloMsg = extras ? `\n\n${'─'.repeat(50)}\n📱 GỢI Ý TIN NHẮN ZALO (paste ngay):\n${'─'.repeat(50)}\n\n${buildZaloMessage(data, extras)}\n${'─'.repeat(50)}` : ''
   const fromAddress = process.env.RESEND_FROM_EMAIL || 'LongIELTS <onboarding@resend.dev>'
 
   const body = `
 Học viên mới nộp bài — cần xem xét và liên hệ.
-
+${partialSection}
 === THÔNG TIN HỌC VIÊN ===
 Họ tên: ${data.studentName}
 SĐT: ${data.studentPhone}
@@ -134,7 +143,7 @@ ${zaloMsg}
 Xem chi tiết: https://docs.google.com/spreadsheets/d/1f-AI4H-UMKDKSObyoEfZk_WlAvKuJZZDdoEgJ01T7SQ
 `.trim()
 
-  const subject = `[Học viên mới] ${data.studentName} — ${testName}`
+  const subject = `[Học viên mới]${isPartial ? '[BÀI THIẾU]' : ''} ${data.studentName} — ${testName}`
 
   const { error } = await getResend().emails.send({
     from: fromAddress,

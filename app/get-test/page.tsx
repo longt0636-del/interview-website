@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { saveStudentInfo } from '@/lib/test-draft'
 
 export default function GetTestPage() {
   const router = useRouter()
@@ -28,8 +29,9 @@ export default function GetTestPage() {
         return
       }
 
-      // Save to sessionStorage for use in test pages
-      sessionStorage.setItem('studentInfo', JSON.stringify(data))
+      // Lưu vào localStorage để học viên đóng trình duyệt / mất điện xong quay lại
+      // vẫn không phải nhập lại tên + SĐT.
+      saveStudentInfo(data)
       router.push(`/test/${data.testLevel}`)
     } catch {
       setError('Lỗi kết nối. Vui lòng thử lại.')

@@ -5,18 +5,23 @@ import { useRouter } from 'next/navigation'
 import { upload } from '@vercel/blob/client'
 import { PromiseResubmit } from '@/components/ui/promise-resubmit'
 import { ReadingListeningExercise } from '@/components/test-exercise/ReadingListeningExercise'
+import { DraftRestoredBanner } from '@/components/test-exercise/DraftRestoredBanner'
 import { TEST3_SECTIONS } from '@/lib/test3-content'
+import {
+  loadStudentInfo,
+  loadDraft,
+  saveDraft,
+  clearDraft,
+  draftHasWork,
+  type StudentInfo,
+  type ExerciseState,
+} from '@/lib/test-draft'
 
-interface StudentInfo {
-  studentName: string
-  studentPhone: string
-  suggestedClass: string
-  testLevel: number
-}
+const TEST_LEVEL = 3
 
 interface RecordingItem {
   id: string
-  file: File
+  fileName: string
   url: string
   uploading: boolean
   progress: number
@@ -77,18 +82,20 @@ const SPEAKING_PART3 = [
   'Are young people in Vietnam interested in cultural knowledge?',
 ]
 
+const EMPTY_SCORES: Record<string, { score: number; total: number } | null> = {
+  readingP1: null,
+  readingP2: null,
+  readingP3: null,
+  listeningS1: null,
+  listeningS2: null,
+  listeningS3: null,
+  listeningS4: null,
+}
+
 export default function Test3Page() {
   const router = useRouter()
   const [student, setStudent] = useState<StudentInfo | null>(null)
-  const [scores, setScores] = useState<Record<string, { score: number; total: number } | null>>({
-    readingP1: null,
-    readingP2: null,
-    readingP3: null,
-    listeningS1: null,
-    listeningS2: null,
-    listeningS3: null,
-    listeningS4: null,
-  })
+  const [scores, setScores] = useState<Record<string, { score: number; total: number } | null>>({ ...EMPTY_SCORES })
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null)
   const [writingTask1, setWritingTask1] = useState('')
   const [writingTask2, setWritingTask2] = useState('')
@@ -97,10 +104,68 @@ export default function Test3Page() {
   const [error, setError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Bài làm dở của từng phần Reading/Listening — giữ ở trang cha thay vì trong
+  // component bài tập, vì component đó bị unmount mỗi lần học viên đóng bài lại.
+  const [exerciseStates, setExerciseStates] = useState<Record<string, ExerciseState>>({})
+  // Chỉ bắt đầu tự lưu SAU khi đã đọc xong bản nháp cũ, nếu không lần lưu đầu tiên
+  // (state còn rỗng) sẽ ghi đè mất bài làm vừa khôi phục.
+  const [hydrated, setHydrated] = useState(false)
+  const [restoredAt, setRestoredAt] = useState(0)
+
+  const studentPhone = student?.studentPhone ?? ''
+
   useEffect(() => {
-    const info = sessionStorage.getItem('studentInfo')
-    if (info) setStudent(JSON.parse(info))
+    const info = loadStudentInfo()
+    if (info) setStudent(info)
+
+    const draft = loadDraft(TEST_LEVEL, info?.studentPhone ?? '')
+    if (draftHasWork(draft) && draft) {
+      setScores({ ...EMPTY_SCORES, ...draft.scores })
+      setExerciseStates(draft.exercises)
+      setWritingTask1(draft.writingTask1)
+      setWritingTask2(draft.writingTask2)
+      setRecordings(
+        draft.recordings.map((r) => ({
+          id: crypto.randomUUID(),
+          fileName: r.name,
+          url: r.url,
+          uploading: false,
+          progress: 100,
+          error: '',
+        }))
+      )
+      setRestoredAt(draft.savedAt)
+    }
+    setHydrated(true)
   }, [])
+
+  // Tự lưu sau mỗi thay đổi. setTimeout + clearTimeout ở cleanup tạo hiệu ứng
+  // debounce: gõ liên tục thì chỉ ghi một lần sau khi ngừng 500ms.
+  useEffect(() => {
+    if (!hydrated) return
+    const timer = setTimeout(() => {
+      saveDraft(TEST_LEVEL, studentPhone, {
+        exercises: exerciseStates,
+        scores,
+        writingTask1,
+        writingTask2,
+        recordings: recordings.filter((r) => r.url).map((r) => ({ name: r.fileName, url: r.url })),
+        grammarScore: '',
+        vocabScore: '',
+      })
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [hydrated, studentPhone, exerciseStates, scores, writingTask1, writingTask2, recordings])
+
+  function handleDiscardDraft() {
+    clearDraft(TEST_LEVEL, studentPhone)
+    setScores({ ...EMPTY_SCORES })
+    setExerciseStates({})
+    setWritingTask1('')
+    setWritingTask2('')
+    setRecordings([])
+    setRestoredAt(0)
+  }
 
   const wc1 = writingTask1.trim() ? writingTask1.trim().split(/\s+/).length : 0
   const wc2 = writingTask2.trim() ? writingTask2.trim().split(/\s+/).length : 0
@@ -127,48 +192,73 @@ export default function Test3Page() {
   if (!writingTask2.trim()) missingParts.push('Writing Task 2')
   if (recordingUrls.length === 0) missingParts.push('Speaking (file ghi âm)')
 
+  const hasUnsubmittedWork =
+    Object.values(scores).some(Boolean) ||
+    Object.values(exerciseStates).some((ex) => Object.keys(ex.answers ?? {}).length > 0) ||
+    !!writingTask1.trim() ||
+    !!writingTask2.trim() ||
+    recordings.length > 0
+
+  // Lớp bảo vệ cuối: bài đã được tự lưu, nhưng localStorage có thể bị chặn (chế độ
+  // ẩn danh, trình duyệt cấm site data) — lúc đó cảnh báo này là thứ duy nhất cứu
+  // được học viên khỏi việc lỡ tay đóng tab.
+  useEffect(() => {
+    if (!hasUnsubmittedWork || submitting) return
+    function warn(e: BeforeUnloadEvent) {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [hasUnsubmittedWork, submitting])
+
   // Upload thẳng từ trình duyệt lên Vercel Blob (không qua API route của mình) —
   // API route chỉ cấp token. Bắt buộc vì Vercel Serverless Function giới hạn body
   // request ở 4.5MB, trong khi file ghi âm Speaking thật (10-15 phút) thường vượt
   // mốc này, khiến upload luôn thất bại dù test bằng file nhỏ lúc dev thì vẫn ổn.
-  async function uploadRecording(item: RecordingItem) {
+  // File gốc được truyền riêng chứ không giữ trong state: đối tượng File không
+  // serialise được xuống localStorage, mà state này thì cần lưu lại để khôi phục.
+  async function uploadRecording(id: string, file: File) {
     setError('')
     try {
       const timestamp = Date.now()
-      const safeName = item.file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
       const ext = safeName.slice(safeName.lastIndexOf('.')).toLowerCase()
-      const contentType = AUDIO_MIME_BY_EXT[ext] || item.file.type || 'application/octet-stream'
+      const contentType = AUDIO_MIME_BY_EXT[ext] || file.type || 'application/octet-stream'
 
-      const blob = await upload(`recordings/${timestamp}_${safeName}`, item.file, {
+      const blob = await upload(`recordings/${timestamp}_${safeName}`, file, {
         access: 'private',
         contentType,
         multipart: true,
         handleUploadUrl: '/api/upload-recording',
         onUploadProgress: ({ percentage }) =>
-          setRecordings((prev) => prev.map((r) => (r.id === item.id ? { ...r, progress: percentage } : r))),
+          setRecordings((prev) => prev.map((r) => (r.id === id ? { ...r, progress: percentage } : r))),
       })
 
       const proxyUrl = `${window.location.origin}/api/recording?path=${encodeURIComponent(blob.pathname)}`
-      setRecordings((prev) => prev.map((r) => (r.id === item.id ? { ...r, url: proxyUrl, uploading: false } : r)))
+      setRecordings((prev) => prev.map((r) => (r.id === id ? { ...r, url: proxyUrl, uploading: false } : r)))
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Lỗi upload file ghi âm.'
-      setRecordings((prev) => prev.map((r) => (r.id === item.id ? { ...r, uploading: false, error: message } : r)))
+      setRecordings((prev) => prev.map((r) => (r.id === id ? { ...r, uploading: false, error: message } : r)))
     }
   }
 
   // Học viên có thể thu nhiều lần (nhiều take) và upload tất cả cùng lúc — mỗi file
   // được nộp riêng, không bị bắt buộc chọn ra 1 file duy nhất trước khi nộp.
   function handleFilesSelected(fileList: FileList) {
-    const newItems: RecordingItem[] = Array.from(fileList).map((file) => ({
-      id: crypto.randomUUID(),
-      file,
-      url: '',
-      uploading: true,
-      progress: 0,
-      error: '',
-    }))
-    setRecordings((prev) => [...prev, ...newItems])
-    newItems.forEach((item) => uploadRecording(item))
+    const picked = Array.from(fileList).map((file) => ({ id: crypto.randomUUID(), file }))
+    setRecordings((prev) => [
+      ...prev,
+      ...picked.map(({ id, file }) => ({
+        id,
+        fileName: file.name,
+        url: '',
+        uploading: true,
+        progress: 0,
+        error: '',
+      })),
+    ])
+    picked.forEach(({ id, file }) => uploadRecording(id, file))
   }
 
   function removeRecording(id: string) {
@@ -177,6 +267,18 @@ export default function Test3Page() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    // Cho phép nộp bài dở. Trước đây nút Nộp bị khoá cho tới khi đủ cả 3 phần, nên
+    // học viên không kịp làm hết trong một lần ngồi thì thầy Long không nhận được gì —
+    // nhận bài thiếu vẫn hơn mất trắng.
+    if (missingParts.length > 0) {
+      const ok = window.confirm(
+        `Bạn chưa hoàn thành: ${missingParts.join(', ')}.\n\n` +
+        'Vẫn nộp phần đã làm cho thầy Long? Thầy sẽ nhận được đúng những gì bạn đã hoàn thành.'
+      )
+      if (!ok) return
+    }
+
     setError('')
     setSubmitting(true)
     try {
@@ -192,10 +294,13 @@ export default function Test3Page() {
           writingTask1,
           writingTask2,
           recordingUrl: recordingUrls.join('\n'),
+          missingParts,
         }),
       })
       if (!res.ok) throw new Error()
       const data = await res.json()
+      // Nộp xong mới xoá bản nháp — nếu nộp lỗi, bài làm vẫn còn nguyên trên máy.
+      clearDraft(TEST_LEVEL, studentPhone)
       sessionStorage.setItem('testResult', JSON.stringify(data))
       router.push('/result')
     } catch {
@@ -220,6 +325,8 @@ export default function Test3Page() {
             </p>
           )}
         </div>
+
+        {restoredAt > 0 && <DraftRestoredBanner savedAt={restoredAt} onDiscard={handleDiscardDraft} />}
 
         {/* Instructions */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 mb-6">
@@ -312,6 +419,10 @@ export default function Test3Page() {
             }}
             onGoToNext={(id) => setActiveExerciseId(id)}
             onClose={() => setActiveExerciseId(null)}
+            initialState={exerciseStates[activeExerciseId] ?? null}
+            onStateChange={(state) =>
+              setExerciseStates((prev) => ({ ...prev, [activeExerciseId]: state }))
+            }
           />
         )}
 
@@ -433,7 +544,7 @@ export default function Test3Page() {
                 {recordings.map((r) => (
                   <div key={r.id} className="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2">
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-700 truncate">{r.file.name}</p>
+                      <p className="text-sm font-medium text-gray-700 truncate">{r.fileName}</p>
                       {r.uploading && <p className="text-xs text-blue-500 mt-0.5">Đang upload... {r.progress}%</p>}
                       {r.url && <p className="text-xs text-green-600 mt-0.5">Upload thành công ✓</p>}
                       {r.error && <p className="text-xs text-red-500 mt-0.5">{r.error}</p>}
@@ -481,19 +592,26 @@ export default function Test3Page() {
 
           <button
             type="submit"
-            disabled={submitting || uploadingRecording || missingParts.length > 0}
+            disabled={submitting || uploadingRecording || !hasUnsubmittedWork}
             className="w-full disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold font-sans py-3 rounded-xl transition-opacity hover:opacity-90"
             style={{ background: 'var(--teal)' }}
           >
-            {submitting ? 'Đang nộp bài...' : uploadingRecording ? 'Đang upload file ghi âm...' : 'Nộp bài cho Thầy Long'}
+            {submitting
+              ? 'Đang nộp bài...'
+              : uploadingRecording
+              ? 'Đang upload file ghi âm...'
+              : missingParts.length > 0
+              ? 'Nộp phần đã làm cho Thầy Long'
+              : 'Nộp bài cho Thầy Long'}
           </button>
-          {missingParts.length > 0 && (
-            <p className="text-center text-red-500 text-xs font-medium">
-              Cần hoàn thành trước khi nộp: {missingParts.join(', ')}
+          {missingParts.length > 0 && hasUnsubmittedWork && (
+            <p className="text-center text-xs font-medium font-sans" style={{ color: 'var(--navy)' }}>
+              ⚠️ Bạn chưa làm: {missingParts.join(', ')} — vẫn nộp được phần đã làm nếu cần.
             </p>
           )}
           <p className="text-center text-gray-400 text-xs">
-            Bạn có thể quay lại trang này bất cứ lúc nào để hoàn thành và nộp.
+            Bài làm được tự động lưu trên máy này. Đóng trang hay mất điện xong mở lại
+            vẫn thấy nguyên bài đang làm dở.
           </p>
         </form>
         <PromiseResubmit raised={!!activeExerciseId} />

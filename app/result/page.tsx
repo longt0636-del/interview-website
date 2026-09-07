@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { loadStudentInfo } from '@/lib/test-draft'
 
 interface WritingFeedbackItem {
   wordCount: number
@@ -121,10 +122,8 @@ export default function ResultPage() {
       setResult(JSON.parse(raw))
       sessionStorage.removeItem('testResult')
     }
-    const info = sessionStorage.getItem('studentInfo')
-    if (info) {
-      try { setStudentName(JSON.parse(info).studentName || '') } catch {}
-    }
+    const info = loadStudentInfo()
+    if (info) setStudentName(info.studentName || '')
   }, [])
 
   async function handleSchedule(e: React.FormEvent) {
