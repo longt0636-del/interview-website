@@ -3,13 +3,15 @@
 import * as React from 'react';
 import { motion } from 'framer-motion';
 import { GridPattern } from '@/components/ui/grid-pattern';
+import { VideoCardGrid } from '@/components/ui/video-testimonial';
+import { testimonialVideos } from '@/lib/testimonial-videos';
 import { cn } from '@/lib/utils';
 
 const quotes = [
   {
-    text: 'Thầy dạy hay và vui lắm ạ. Em học với thầy mà không thấy chán lần nào.',
-    author: 'Học viên LongIELTS',
-    result: null,
+    text: 'Thầy ơi em đang bế con. Đợi xíu em vào học ạ? — vừa đi làm, vừa chăm con, em vẫn theo hết lộ trình và đạt 7.5.',
+    author: 'Đặng Nguyễn Minh Thư',
+    result: 'IELTS 7.5',
   },
   {
     text: 'Từ hồi học với thầy Long, em mới hiểu Reading không phải đọc hết bài — thầy dạy cách scan và skim đúng cách, tiết kiệm được rất nhiều thời gian.',
@@ -29,183 +31,153 @@ const quotes = [
 ];
 
 const squarePhotos = [
-  { src: '/students/class-photo-1.jpg', alt: 'Học viên lớp IELTS LongIELTS' },
-  { src: '/students/class-photo-2.jpg', alt: 'Học viên lớp IELTS LongIELTS' },
+  { src: '/students/class-photo-1.jpg', alt: 'Học viên lớp IELTS LongIELTS trong giờ học' },
+  { src: '/students/class-photo-2.jpg', alt: 'Học viên LongIELTS luyện tập theo nhóm nhỏ' },
   { src: '/students/class-photo-3.jpg', alt: 'Cả lớp chụp ảnh kỷ niệm cùng thầy Long' },
-  { src: '/students/class-photo-4.jpg', alt: 'Học viên LongIELTS' },
-  { src: '/students/class-photo-5.jpg', alt: 'Học viên LongIELTS' },
-  { src: '/students/class-photo-6.jpg', alt: 'Học viên LongIELTS' },
+  { src: '/students/class-photo-4.jpg', alt: 'Học viên LongIELTS nhận kết quả IELTS' },
+  { src: '/students/class-photo-5.jpg', alt: 'Buổi học IELTS tại lớp của thầy Long' },
+  { src: '/students/class-photo-6.jpg', alt: 'Học viên LongIELTS cùng thầy Long sau buổi học' },
 ];
 
-const videos = [
-  {
-    label: 'Trương Ngọc Lan – IELTS 7.5',
-    src: '/videos/lan-ielts-75.mp4',
-    poster: '/students/poster-lan.jpg',
-  },
-  {
-    label: 'Học sinh chia sẻ những gì mình đã học được trong 1 năm',
-    src: '/videos/students-share.mp4',
-    poster: '/students/poster-students-share.jpg',
-  },
-];
+/* ── Quote card ────────────────────────────────────────────────────────────── */
 
-// ─── Video player card ─────────────────────────────────────────────────────
-
-function VideoCard({ label, src, poster }: typeof videos[0]) {
+function QuoteCard({ text, author, result }: (typeof quotes)[0]) {
   return (
-    <div
-      className="rounded-2xl overflow-hidden"
-      style={{ boxShadow: '0 4px 20px rgba(11,61,92,0.18)' }}
-    >
-      {/* 9:16 portrait container — video fills it, fullscreen works naturally on all devices */}
-      <div className="relative w-full" style={{ aspectRatio: '9/16' }}>
-        <video
-          controls
-          poster={poster}
-          preload="metadata"
-          className="absolute inset-0 w-full h-full"
-          style={{ objectFit: 'contain', background: '#0B3D5C' }}
-        >
-          <source src={src} type="video/mp4" />
-        </video>
-      </div>
-      <div
-        className="px-4 py-3"
-        style={{ background: 'var(--navy)' }}
-      >
-        <p className="font-sans text-sm font-semibold text-white leading-snug">{label}</p>
-      </div>
-    </div>
-  );
-}
-
-// ─── Quote card ────────────────────────────────────────────────────────────
-
-function QuoteCard({ text, author, result }: typeof quotes[0]) {
-  return (
-    <div
-      className="rounded-2xl p-5 flex flex-col gap-3"
+    <figure
+      className="flex h-full flex-col gap-3 rounded-2xl p-5"
       style={{
         background: 'var(--off-white)',
         border: '1px solid var(--mint)',
         boxShadow: '0 2px 12px rgba(11,61,92,0.06)',
       }}
     >
-      <div className="font-serif text-4xl leading-none" style={{ color: 'var(--teal)', opacity: 0.4 }}>&ldquo;</div>
-      <p className="font-sans text-sm leading-relaxed flex-1" style={{ color: 'var(--ink)' }}>
+      <span aria-hidden="true" className="font-serif text-4xl leading-none" style={{ color: 'var(--teal)', opacity: 0.4 }}>
+        &ldquo;
+      </span>
+      <blockquote className="flex-1 font-sans text-sm leading-relaxed" style={{ color: 'var(--ink)' }}>
         {text}
-      </p>
-      <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'var(--mint)' }}>
+      </blockquote>
+      <figcaption className="flex items-center justify-between gap-3 border-t pt-3" style={{ borderColor: 'var(--mint)' }}>
         <span className="font-sans text-xs font-semibold" style={{ color: 'var(--navy)' }}>
           — {author}
         </span>
-        {result && (
+        {result ? (
           <span
-            className="font-mono font-bold text-sm px-2.5 py-1 rounded-full"
+            className="shrink-0 rounded-full px-2.5 py-1 font-mono text-sm font-bold"
             style={{ background: 'var(--navy)', color: 'var(--amber)' }}
           >
             {result}
           </span>
-        )}
-      </div>
-    </div>
+        ) : null}
+      </figcaption>
+    </figure>
   );
 }
 
-// ─── Square photo card ─────────────────────────────────────────────────────
+/* ── Square photo card ─────────────────────────────────────────────────────── */
 
 function SquarePhoto({ src, alt }: { src: string; alt: string }) {
   return (
     <div
-      className="relative rounded-2xl overflow-hidden group"
-      style={{
-        boxShadow: '0 4px 20px rgba(11,61,92,0.12)',
-        border: '2px solid var(--mint)',
-      }}
+      className="group relative overflow-hidden rounded-2xl"
+      style={{ boxShadow: '0 4px 20px rgba(11,61,92,0.12)', border: '2px solid var(--mint)' }}
     >
       <img
         src={src}
         alt={alt}
-        className="w-full object-cover transition-transform duration-500 group-hover:scale-105"
+        loading="lazy"
+        decoding="async"
+        className="w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         style={{ aspectRatio: '1 / 1', objectPosition: 'center top' }}
       />
     </div>
   );
 }
 
-// ─── Main Section ──────────────────────────────────────────────────────────
+/* ── Section ───────────────────────────────────────────────────────────────── */
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0 },
+};
 
 export function TestimonialsSection() {
   return (
-    <section id="testimonials" className="py-24 px-6 bg-white relative overflow-hidden">
+    <section id="testimonials" className="relative scroll-mt-20 overflow-hidden bg-white px-6 py-24">
       <GridPattern
-        width={36} height={36}
+        width={36}
+        height={36}
         strokeDasharray="4 2"
-        className={cn('fill-[#1D9E75]/[0.03] stroke-[#1D9E75]/[0.05]', '[mask-image:radial-gradient(700px_circle_at_80%_20%,white,transparent)]')}
+        className={cn(
+          'fill-[#1D9E75]/[0.03] stroke-[#1D9E75]/[0.05]',
+          '[mask-image:radial-gradient(700px_circle_at_80%_20%,white,transparent)]',
+        )}
       />
-      <div className="max-w-6xl mx-auto relative z-10">
-
+      <div className="relative z-10 mx-auto max-w-6xl">
         {/* Header */}
         <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          className="mb-12 text-center"
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.4 }}
           transition={{ duration: 0.6 }}
         >
-          <p className="font-sans text-xs font-semibold uppercase tracking-widest mb-3"
-             style={{ color: 'var(--teal)' }}>
-            Học viên nói gì
-          </p>
-          <h2 className="font-serif font-bold text-4xl mb-4" style={{ color: 'var(--navy)' }}>
+          <div className="mb-3 flex items-center justify-center gap-3">
+            <span className="h-px w-8" style={{ background: 'var(--teal)' }} />
+            <p className="font-sans text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--teal)' }}>
+              · Học viên nói gì ·
+            </p>
+            <span className="h-px w-8" style={{ background: 'var(--teal)' }} />
+          </div>
+          <h2 className="mb-4 font-serif text-4xl font-bold" style={{ color: 'var(--navy)' }}>
             Nhận xét, cảm nghĩ của học viên
           </h2>
-          <p className="font-sans max-w-xl mx-auto text-sm leading-relaxed"
-             style={{ color: 'var(--ink)', opacity: 0.65 }}>
+          <p className="mx-auto max-w-xl font-sans text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.65 }}>
             Những khoảnh khắc thật, cảm nhận thật — từ lớp học đến bảng điểm IELTS.
+            Bấm vào từng thẻ để nghe học viên tự kể.
           </p>
         </motion.div>
 
-        {/* Videos */}
+        {/* Video testimonials */}
         <motion.div
-          className="grid md:grid-cols-2 gap-5 mb-14 max-w-2xl mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+          className="mb-16"
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.6, delay: 0.08 }}
         >
-          {videos.map((v, i) => (
-            <VideoCard key={i} {...v} />
-          ))}
+          <VideoCardGrid items={testimonialVideos} className="mx-auto max-w-5xl" />
         </motion.div>
 
         {/* Quote cards */}
         <motion.div
-          className="grid md:grid-cols-2 gap-4 mb-14"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.15 }}
+          className="mb-16 grid gap-4 md:grid-cols-2"
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.6, delay: 0.12 }}
         >
-          {quotes.map((q, i) => (
-            <QuoteCard key={i} {...q} />
+          {quotes.map((q) => (
+            <QuoteCard key={q.author} {...q} />
           ))}
         </motion.div>
 
-        {/* Square photo grid */}
+        {/* Class photos */}
         <motion.div
-          className="grid grid-cols-2 md:grid-cols-3 gap-4"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-2 gap-4 md:grid-cols-3"
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.6, delay: 0.16 }}
         >
-          {squarePhotos.map((p, i) => (
-            <SquarePhoto key={i} {...p} />
+          {squarePhotos.map((p) => (
+            <SquarePhoto key={p.src} {...p} />
           ))}
         </motion.div>
-
       </div>
     </section>
   );

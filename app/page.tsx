@@ -1,8 +1,22 @@
 import Link from 'next/link'
 import { HeroAurora } from '@/components/ui/hero-aurora'
+import { HeroSpotlight } from '@/components/ui/hero-spotlight'
+import { SiteNav } from '@/components/ui/site-nav'
 import { TestimonialsSection } from '@/components/ui/testimonials-section'
 import { ButtonColorful } from '@/components/ui/button-colorful'
 import { GridPattern } from '@/components/ui/grid-pattern'
+import {
+  AcademicCapIcon,
+  ArrowRightIcon,
+  BookOpenIcon,
+  CalendarIcon,
+  ClipboardCheckIcon,
+  PencilSquareIcon,
+  SproutIcon,
+  TargetIcon,
+  TrendUpIcon,
+  UsersIcon,
+} from '@/components/ui/icons'
 import { cn } from '@/lib/utils'
 
 const GOOGLE_FORM_URL =
@@ -11,7 +25,7 @@ const GOOGLE_FORM_URL =
 const courses = [
   {
     tag: 'IELTS NỀN TẢNG — Band 3–4',
-    icon: '🌱',
+    Icon: SproutIcon,
     name: 'Bắt đầu đúng cách, nền tảng vững chắc.',
     desc: 'Dành cho học viên mất gốc hoặc cơ bản. Xây dựng lại Grammar, Vocabulary và 4 kỹ năng từ đầu.',
     link: 'https://canva.link/d55b4f4fjkcghlc',
@@ -25,7 +39,7 @@ const courses = [
   },
   {
     tag: 'IELTS CĂN BẢN — Band 4–5',
-    icon: '📈',
+    Icon: TrendUpIcon,
     name: 'Nền tảng vững, band score không lo.',
     desc: 'Dành cho học viên đã có căn bản, cần hệ thống hóa kiến thức và chiến lược làm bài chuẩn IELTS.',
     link: 'https://canva.link/s6rchv6njq5zqzi',
@@ -39,7 +53,7 @@ const courses = [
   },
   {
     tag: 'ROAD TO IELTS — Band 5–6+',
-    icon: '🎯',
+    Icon: TargetIcon,
     name: 'Từ 5.0 lên 7.0 — chiến lược thực chiến.',
     desc: 'Dành cho học viên Band 5.0+, cần chiến lược làm bài chuyên sâu và luyện đề thi thật.',
     link: 'https://canva.link/iqi67oe336pt5h0',
@@ -56,18 +70,21 @@ const courses = [
 const steps = [
   {
     num: '01',
+    Icon: ClipboardCheckIcon,
     title: 'Điền form khảo sát',
     desc: 'Chia sẻ mục tiêu, deadline và trình độ hiện tại. Chỉ mất 5 phút.',
-    action: { label: 'Điền form ngay ↗', href: GOOGLE_FORM_URL, external: true },
+    action: { label: 'Điền form ngay', href: GOOGLE_FORM_URL, external: true },
   },
   {
     num: '02',
+    Icon: PencilSquareIcon,
     title: 'Làm bài kiểm tra trình độ',
     desc: 'Hệ thống tự giao bài test phù hợp. Làm theo tốc độ của bạn, nộp khi sẵn sàng.',
-    action: { label: 'Nhận bài test →', href: '/get-test', external: false },
+    action: { label: 'Nhận bài test', href: '/get-test', external: false },
   },
   {
     num: '03',
+    Icon: CalendarIcon,
     title: 'Nhận lịch học thử',
     desc: 'Thầy Long liên hệ trong 24h để phân tích kết quả và sắp xếp 2 buổi học thử miễn phí.',
     action: null,
@@ -98,27 +115,7 @@ export default function HomePage() {
     <main className="flex flex-col">
 
       {/* ── NAV ── */}
-      <nav className="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <span className="font-serif font-bold text-xl" style={{ color: 'var(--navy)' }}>
-            Long<span style={{ color: 'var(--teal)' }}>IELTS</span>
-          </span>
-          <div className="hidden md:flex items-center gap-8 text-sm font-sans" style={{ color: 'var(--ink)' }}>
-            <a href="#courses" className="hover:opacity-70 transition-opacity">Khóa học</a>
-            <a href="#how" className="hover:opacity-70 transition-opacity">Quy trình</a>
-            <a href="#faq" className="hover:opacity-70 transition-opacity">FAQ</a>
-          </div>
-          <a
-            href={GOOGLE_FORM_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-white text-sm font-semibold px-5 py-2 rounded-full transition-opacity hover:opacity-90"
-            style={{ background: 'var(--teal)' }}
-          >
-            Đăng ký ngay ↗
-          </a>
-        </div>
-      </nav>
+      <SiteNav formUrl={GOOGLE_FORM_URL} />
 
       {/* ── HERO ── */}
       <section className="pt-16 min-h-screen flex items-center px-6 relative overflow-hidden" style={{ background: 'var(--navy)' }}>
@@ -148,7 +145,7 @@ export default function HomePage() {
                 100% học viên tăng ít nhất 0.5 band. Lớp kèm số lượng ít —
                 không nhồi nhét học viên, bám sát năng lực học từng em.
               </p>
-              <div className="flex flex-wrap gap-4 items-center mb-14">
+              <div className="flex flex-wrap gap-4 items-center mb-10">
                 <ButtonColorful
                   label="Bước 1: Điền form khảo sát"
                   href={GOOGLE_FORM_URL}
@@ -156,69 +153,47 @@ export default function HomePage() {
                 />
                 <Link
                   href="/get-test"
-                  className="font-sans font-semibold px-8 py-4 rounded-xl text-base transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                  className="font-sans font-semibold px-8 py-4 rounded-xl text-base inline-flex items-center gap-2 transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#5DCAA5]/60"
                   style={{
                     color: 'var(--navy)',
                     background: 'var(--amber)',
                     boxShadow: '0 8px 24px rgba(239,159,39,0.35)',
                   }}
                 >
-                  Bước 2: Nhận bài test →
+                  Bước 2: Nhận bài test
+                  <ArrowRightIcon className="w-4 h-4" />
                 </Link>
               </div>
-              {/* Score badge */}
-              <div className="flex items-end gap-4">
+              {/* Teacher credential */}
+              <div
+                className="inline-flex items-end gap-4 rounded-2xl px-5 py-4"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(93,202,165,0.22)' }}
+              >
                 <div
                   className="font-mono font-bold leading-none"
-                  style={{ fontSize: 'clamp(5rem, 12vw, 9rem)', color: 'var(--amber)' }}
+                  style={{ fontSize: 'clamp(3.25rem, 8vw, 5rem)', color: 'var(--amber)' }}
                 >
                   8.5
                 </div>
-                <div className="pb-3">
-                  <div className="font-sans font-bold text-base text-white">IELTS Overall</div>
-                  <div className="font-sans text-sm" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                <div className="pb-1.5">
+                  <div className="font-sans font-bold text-sm sm:text-base text-white">IELTS Overall</div>
+                  <div className="font-sans text-xs sm:text-sm whitespace-nowrap" style={{ color: 'rgba(255,255,255,0.55)' }}>
                     Thầy Long · Giáo viên của bạn
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Right — student photo */}
-            <div className="hidden md:flex justify-center items-center">
-              <div className="relative">
-                {/* Decorative glow ring */}
-                <div
-                  className="absolute -inset-3 rounded-3xl"
-                  style={{
-                    background: 'linear-gradient(135deg, var(--teal) 0%, rgba(93,202,165,0.3) 100%)',
-                    filter: 'blur(20px)',
-                    opacity: 0.35,
-                  }}
-                />
-                <div
-                  className="relative rounded-3xl overflow-hidden"
-                  style={{
-                    border: '2px solid rgba(93,202,165,0.45)',
-                    boxShadow: '0 24px 60px rgba(0,0,0,0.4)',
-                    maxWidth: 420,
-                  }}
-                >
-                  <img
-                    src="/students/lan-result.jpg"
-                    alt="Thầy Long cùng Trương Ngọc Lan đạt IELTS 7.5"
-                    className="w-full h-auto object-cover"
-                    style={{ objectPosition: 'center top' }}
-                  />
-                </div>
-              </div>
+            {/* Right — video spotlight (newest student result) */}
+            <div className="flex items-center justify-center md:pl-4">
+              <HeroSpotlight />
             </div>
-
           </div>
         </div>
       </section>
 
       {/* ── COURSES ── */}
-      <section id="courses" style={{ background: 'var(--off-white)' }} className="py-24 px-6 relative overflow-hidden">
+      <section id="courses" style={{ background: 'var(--off-white)' }} className="py-24 px-6 relative overflow-hidden scroll-mt-20">
         <GridPattern
           width={32} height={32}
           strokeDasharray="4 2"
@@ -228,12 +203,16 @@ export default function HomePage() {
 
           {/* Header with decorative icons */}
           <div className="relative text-center mb-14">
-            <div className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 text-8xl opacity-20 select-none" style={{ filter: 'drop-shadow(0 4px 8px rgba(29,158,117,0.3))' }}>
-              🎓
-            </div>
-            <div className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 text-8xl opacity-20 select-none" style={{ filter: 'drop-shadow(0 4px 8px rgba(29,158,117,0.3))' }}>
-              📖
-            </div>
+            <AcademicCapIcon
+              className="hidden md:block absolute left-0 top-1/2 -translate-y-1/2 w-20 h-20 pointer-events-none"
+              strokeWidth={1.1}
+              style={{ color: 'var(--teal)', opacity: 0.22 }}
+            />
+            <BookOpenIcon
+              className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 w-20 h-20 pointer-events-none"
+              strokeWidth={1.1}
+              style={{ color: 'var(--teal)', opacity: 0.22 }}
+            />
             <div className="flex items-center justify-center gap-3 mb-3">
               <span className="w-8 h-px" style={{ background: 'var(--teal)' }} />
               <p className="font-sans text-xs font-semibold uppercase tracking-widest"
@@ -274,10 +253,10 @@ export default function HomePage() {
                   {/* Icon + Title */}
                   <div className="flex items-start gap-3 mb-3">
                     <div
-                      className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl"
-                      style={{ background: 'var(--mint)' }}
+                      className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center"
+                      style={{ background: 'var(--mint)', color: 'var(--navy)' }}
                     >
-                      {c.icon}
+                      <c.Icon className="w-6 h-6" />
                     </div>
                     <h3 className="font-serif font-bold text-2xl leading-snug"
                         style={{ color: 'var(--navy)' }}>
@@ -321,12 +300,12 @@ export default function HomePage() {
                       <div className="font-mono font-bold text-2xl shrink-0" style={{ color: 'var(--amber)' }}>
                         {c.target}
                       </div>
-                      {/* Target icon */}
+                      {/* Target marker */}
                       <div
-                        className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm ml-1"
-                        style={{ background: 'rgba(239,159,39,0.18)' }}
+                        className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center ml-1"
+                        style={{ background: 'rgba(239,159,39,0.18)', color: 'var(--amber)' }}
                       >
-                        🎯
+                        <TargetIcon className="w-4 h-4" strokeWidth={2} />
                       </div>
                     </div>
                     <p className="font-sans text-xs mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>
@@ -361,14 +340,14 @@ export default function HomePage() {
                   {/* Class size */}
                   <div className="flex items-center justify-center gap-1.5 pt-4 border-t font-sans text-sm font-medium"
                        style={{ borderColor: 'var(--mint)', color: 'var(--ink)' }}>
-                    <span>👥</span>
+                    <UsersIcon className="w-4 h-4 shrink-0" style={{ color: 'var(--teal)' }} />
                     <span>{c.classSize} học viên / lớp</span>
                   </div>
 
-                  <div className="mt-4 flex items-center gap-1 text-sm font-semibold font-sans"
+                  <div className="mt-4 flex items-center gap-1.5 text-sm font-semibold font-sans"
                        style={{ color: 'var(--teal)' }}>
                     Xem chi tiết lộ trình
-                    <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
+                    <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </a>
@@ -378,7 +357,7 @@ export default function HomePage() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section id="how" className="py-24 px-6 relative overflow-hidden" style={{ background: 'var(--mint)' }}>
+      <section id="how" className="py-24 px-6 relative overflow-hidden scroll-mt-20" style={{ background: 'var(--mint)' }}>
         <GridPattern
           width={36} height={36}
           className={cn('fill-[#0B3D5C]/[0.04] stroke-[#0B3D5C]/[0.07]', '[mask-image:linear-gradient(to_bottom,white,transparent)]')}
@@ -438,9 +417,13 @@ export default function HomePage() {
                   )}
 
                   <div className="bg-white rounded-2xl p-6 flex gap-5 items-center" style={{ boxShadow: '0 2px 12px rgba(11,61,92,0.08)' }}>
-                    {/* Step number */}
-                    <div className="font-mono font-bold text-3xl shrink-0 w-14 text-center" style={{ color: 'var(--amber)' }}>
-                      {s.num}
+                    {/* Step marker */}
+                    <div className="shrink-0 w-14 flex flex-col items-center gap-1.5">
+                      <div className="w-11 h-11 rounded-xl flex items-center justify-center"
+                           style={{ background: 'var(--mint)', color: 'var(--navy)' }}>
+                        <s.Icon className="w-5 h-5" />
+                      </div>
+                      <span className="font-mono font-bold text-sm" style={{ color: 'var(--amber)' }}>{s.num}</span>
                     </div>
                     {/* Content */}
                     <div className="flex-1">
@@ -594,7 +577,7 @@ export default function HomePage() {
       </section>
 
       {/* ── FAQ ── */}
-      <section id="faq" className="py-24 px-6 bg-white relative overflow-hidden">
+      <section id="faq" className="py-24 px-6 bg-white relative overflow-hidden scroll-mt-20">
         <GridPattern
           width={28} height={28}
           strokeDasharray="4 2"
@@ -654,10 +637,11 @@ export default function HomePage() {
             />
             <Link
               href="/get-test"
-              className="font-sans font-semibold px-8 py-4 rounded-xl border text-base hover:opacity-80 transition-opacity"
-              style={{ color: 'white', borderColor: 'rgba(255,255,255,0.3)' }}
+              className="font-sans font-semibold px-8 py-4 rounded-xl border text-base inline-flex items-center gap-2 transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#5DCAA5]/50"
+              style={{ color: 'white', borderColor: 'rgba(255,255,255,0.35)' }}
             >
-              Đã điền form → Nhận bài test
+              Đã điền form — Nhận bài test
+              <ArrowRightIcon className="w-4 h-4" />
             </Link>
           </div>
         </div>
