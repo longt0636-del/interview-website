@@ -20,21 +20,33 @@ export interface StudentRecord {
 
 // Ước tính "học lớp mấy" từ ngày sinh, theo quy tắc tuyển sinh VN
 // (xếp lớp theo NĂM sinh, không theo ngày/tháng cụ thể — lớp 1 vào năm tròn 6 tuổi).
-export function estimateGradeFromDOB(dobStr: string): string {
-  if (!dobStr) return ''
+export function estimateGradeNumberFromDOB(dobStr: string): number | null {
+  if (!dobStr) return null
 
   const match = dobStr.trim().match(/(\d{1,2})[/\-](\d{1,2})[/\-](\d{4})|(\d{4})[/\-](\d{1,2})[/\-](\d{1,2})/)
   const birthYear = match ? parseInt(match[3] || match[4]) : NaN
-  if (!birthYear || Number.isNaN(birthYear)) return ''
+  if (!birthYear || Number.isNaN(birthYear)) return null
 
   const now = new Date()
   // Năm học VN bắt đầu tháng 9 — trước tháng 9 vẫn tính là năm học bắt đầu từ tháng 9 năm trước
   const schoolYearStart = now.getMonth() + 1 >= 9 ? now.getFullYear() : now.getFullYear() - 1
-  const grade = schoolYearStart - birthYear - 5
+  return schoolYearStart - birthYear - 5
+}
+
+export function estimateGradeFromDOB(dobStr: string): string {
+  const grade = estimateGradeNumberFromDOB(dobStr)
+  if (grade === null) return ''
 
   if (grade < 1) return 'Chưa vào lớp 1'
   if (grade > 12) return 'Đã tốt nghiệp THPT / người đi làm'
   return `Lớp ${grade}`
+}
+
+// Học sinh THCS = lớp 6–9 (cấp 2), suy ra từ năm sinh ở cột F.
+// Không có ngày sinh hợp lệ thì trả về false để các luật phía sau xử lý như cũ.
+export function isSecondarySchoolStudent(dobStr: string): boolean {
+  const grade = estimateGradeNumberFromDOB(dobStr)
+  return grade !== null && grade >= 6 && grade <= 9
 }
 
 function monthsUntilExam(examDateStr: string): number | null {
@@ -102,6 +114,10 @@ export function determineTestLevel(student: StudentRecord): TestLevel {
   // Teacher's manual assignment always wins over the automatic rules below
   const override = parseTestOverride(student.testOverride)
   if (override) return override
+
+  // Học sinh cấp 2 (lớp 6–9) luôn làm Test 1 (mất gốc), bất kể lịch thi hay trình độ tự khai
+  // — chỉ cột "BÀI TEST CHỈ ĐỊNH" ở trên mới ghi đè được luật này.
+  if (isSecondarySchoolStudent(student.dob)) return 1
 
   const months = monthsUntilExam(student.examDate)
 
