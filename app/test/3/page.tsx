@@ -51,6 +51,33 @@ const AUDIO_MIME_BY_EXT: Record<string, string> = {
   '.ogg': 'audio/ogg',
   '.webm': 'audio/webm',
   '.aac': 'audio/aac',
+  // Máy ghi âm mặc định của Android + tin nhắn thoại Zalo hay cho ra mấy đuôi này (thêm 17/09/2026,
+  // xem chú thích dài ở app/api/upload-recording/route.ts).
+  '.amr': 'audio/amr',
+  '.3gp': 'video/3gpp',
+  '.3gpp': 'video/3gpp',
+  '.opus': 'audio/ogg',
+  '.flac': 'audio/flac',
+  '.wma': 'audio/x-ms-wma',
+  '.mp4': 'video/mp4',
+  '.caf': 'audio/x-caf',
+}
+
+const MAX_RECORDING_BYTES = 50 * 1024 * 1024
+
+// Nói cho học viên biết CHUYỆN GÌ XẢY RA và LÀM GÌ TIẾP, thay vì đưa nguyên câu tiếng Anh của thư
+// viện upload. 17/09/2026: chọn nhầm file `.amr` (máy Android hay ghi kiểu này) thì thứ hiện ra là
+// "Vercel Blob: Failed to retrieve the client token" — không ai đoán được là do định dạng file.
+function friendlyUploadError(raw: unknown): string {
+  const text = raw instanceof Error ? raw.message : String(raw ?? '')
+  if (/định dạng|dung lượng|quá 50MB/i.test(text)) return text
+  if (/client token|Failed to retrieve|BlobError/i.test(text)) {
+    return 'Không gửi được file này lên. Bạn thử chọn lại file, hoặc đổi sang file MP3/M4A rồi thử lại. Vẫn không được thì nhắn Zalo cho Thầy Long kèm tên file nhé.'
+  }
+  if (/fetch|network|Load failed|timeout/i.test(text)) {
+    return 'Mạng bị gián đoạn nên file chưa lên được. Bạn kiểm tra wifi/4G rồi bấm chọn lại file nhé — phần bài đã làm vẫn còn nguyên.'
+  }
+  return 'Chưa gửi được file ghi âm. Bạn thử chọn lại file một lần nữa nhé.'
 }
 
 function getNextExerciseId(current: string): string | null {
@@ -104,6 +131,7 @@ export default function Test3Page() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const filesByIdRef = useRef<Map<string, File>>(new Map())
 
   // Bài làm dở của từng phần Reading/Listening — giữ ở trang cha thay vì trong
   // component bài tập, vì component đó bị unmount mỗi lần học viên đóng bài lại.
@@ -225,6 +253,20 @@ export default function Test3Page() {
       const timestamp = Date.now()
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
       const ext = safeName.slice(safeName.lastIndexOf('.')).toLowerCase()
+
+      // Chặn ngay tại máy học viên, TRƯỚC khi gọi lên server: hai lỗi này server cũng chặn, nhưng
+      // lúc đó câu giải thích của mình bị thư viện upload nuốt mất, em chỉ còn thấy tiếng Anh.
+      if (!AUDIO_MIME_BY_EXT[ext]) {
+        throw new Error(
+          `File "${file.name}" không phải định dạng ghi âm mà hệ thống đọc được. Bạn gửi file MP3, M4A hoặc WAV nhé (mở app Ghi âm → chọn bài ghi → Chia sẻ → Lưu vào Files).`
+        )
+      }
+      if (file.size > MAX_RECORDING_BYTES) {
+        throw new Error(
+          `File "${file.name}" nặng ${(file.size / 1048576).toFixed(0)}MB, vượt dung lượng cho phép (50MB). Bạn thu lại ngắn hơn, hoặc chia thành 2-3 file rồi gửi cả mấy file cùng lúc nhé.`
+        )
+      }
+
       const contentType = AUDIO_MIME_BY_EXT[ext] || file.type || 'application/octet-stream'
 
       const blob = await upload(`recordings/${timestamp}_${safeName}`, file, {
@@ -239,7 +281,7 @@ export default function Test3Page() {
       const proxyUrl = `${window.location.origin}/api/recording?path=${encodeURIComponent(blob.pathname)}`
       setRecordings((prev) => prev.map((r) => (r.id === id ? { ...r, url: proxyUrl, uploading: false } : r)))
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : 'Lỗi upload file ghi âm.'
+      const message = friendlyUploadError(e)
       setRecordings((prev) => prev.map((r) => (r.id === id ? { ...r, uploading: false, error: message } : r)))
     }
   }
@@ -248,6 +290,9 @@ export default function Test3Page() {
   // được nộp riêng, không bị bắt buộc chọn ra 1 file duy nhất trước khi nộp.
   function handleFilesSelected(fileList: FileList) {
     const picked = Array.from(fileList).map((file) => ({ id: crypto.randomUUID(), file }))
+    // Giữ file gốc lại trong phiên làm bài này để bấm "Thử lại" được. KHÔNG để trong state vì state
+    // được lưu xuống máy (localStorage) mà đối tượng File thì không lưu xuống được.
+    picked.forEach(({ id, file }) => filesByIdRef.current.set(id, file))
     setRecordings((prev) => [
       ...prev,
       ...picked.map(({ id, file }) => ({
@@ -549,6 +594,24 @@ export default function Test3Page() {
                       {r.uploading && <p className="text-xs text-blue-500 mt-0.5">Đang upload... {r.progress}%</p>}
                       {r.url && <p className="text-xs text-green-600 mt-0.5">Upload thành công ✓</p>}
                       {r.error && <p className="text-xs text-red-500 mt-0.5">{r.error}</p>}
+                      {/* File vẫn còn trong máy — cho bấm lại một cái, khỏi phải đi tìm file lần nữa.
+                          Trừ khi lỗi là do định dạng/dung lượng: bấm lại cũng hỏng y hệt. */}
+                      {r.error && !/định dạng|dung lượng/i.test(r.error) && filesByIdRef.current.has(r.id) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const file = filesByIdRef.current.get(r.id)
+                            if (!file) return
+                            setRecordings((prev) =>
+                              prev.map((x) => (x.id === r.id ? { ...x, uploading: true, progress: 0, error: '' } : x))
+                            )
+                            uploadRecording(r.id, file)
+                          }}
+                          className="mt-1.5 text-xs font-semibold text-blue-600 underline underline-offset-2"
+                        >
+                          Thử gửi lại file này
+                        </button>
+                      )}
                     </div>
                     <button
                       type="button"
@@ -573,12 +636,16 @@ export default function Test3Page() {
               <p className="text-sm text-gray-500">
                 {recordings.length > 0 ? 'Bấm để thêm file khác' : 'Bấm để chọn file âm thanh'}
               </p>
-              <p className="text-xs text-gray-400 mt-1">MP3, WAV, M4A — tối đa 50MB/file</p>
+              <p className="text-xs text-gray-400 mt-1">
+                MP3, M4A, WAV hoặc file ghi âm sẵn của điện thoại — tối đa 50MB/file
+              </p>
             </div>
+            {/* Vài máy Android xếp file ghi âm `.3gp`/`.amr` vào nhóm VIDEO, nên để mỗi `audio/*` là
+                chúng biến mất khỏi danh sách chọn file — học viên tưởng máy mất bài ghi âm. */}
             <input
               ref={fileInputRef}
               type="file"
-              accept="audio/*"
+              accept="audio/*,video/3gpp,video/mp4,.amr,.3gp,.3gpp,.opus,.caf"
               multiple
               className="hidden"
               onChange={(e) => {
