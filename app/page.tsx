@@ -98,7 +98,7 @@ const faqs = [
   },
   {
     q: 'Một lớp có bao nhiêu học sinh?',
-    a: 'Tối đa 8 học sinh. Thầy biết tên, biết điểm yếu từng em để cá nhân hóa phương pháp.',
+    a: 'Tối đa 10 học sinh. Thầy biết tên, biết điểm yếu từng em để cá nhân hóa phương pháp.',
   },
   {
     q: 'Chưa biết trình độ của mình ở đâu thì sao?',

@@ -66,7 +66,7 @@
 ## Voice & Tone
 
 **DO:** "100% học viên tăng ít nhất 0.5 band." — factual, calm, specific
-**DO:** "Lớp tối đa 8 người — thầy biết tên, biết điểm yếu từng em."
+**DO:** "Lớp tối đa 10 người — thầy biết tên, biết điểm yếu từng em."
 **DON'T:** "Cam kết đầu ra 100% TUYỆT ĐỐI!!!" — hype, caps, exclamation overload
 **DON'T:** "Phương pháp độc quyền siêu đỉnh!" — vague superlatives
 
