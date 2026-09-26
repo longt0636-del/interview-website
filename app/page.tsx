@@ -11,6 +11,7 @@ import {
   BookOpenIcon,
   CalendarIcon,
   ClipboardCheckIcon,
+  MapPinIcon,
   PencilSquareIcon,
   SproutIcon,
   TargetIcon,
@@ -145,6 +146,38 @@ export default function HomePage() {
                 100% học viên tăng ít nhất 0.5 band. Lớp kèm số lượng ít —
                 không nhồi nhét học viên, bám sát năng lực học từng em.
               </p>
+              {/* Class address — parents ask for this most often */}
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=289%2F26+H%E1%BB%93+T%C3%B9ng+M%E1%BA%ADu%2C+B%E1%BA%A3o+L%E1%BB%99c%2C+L%C3%A2m+%C4%90%E1%BB%93ng"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-4 rounded-2xl px-5 py-4 mb-8 max-w-xl transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#EF9F27]/60"
+                style={{
+                  background: 'rgba(239,159,39,0.12)',
+                  border: '2px solid var(--amber)',
+                  boxShadow: '0 8px 24px rgba(239,159,39,0.18)',
+                }}
+              >
+                <span
+                  className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-xl"
+                  style={{ background: 'var(--amber)', color: 'var(--navy)' }}
+                >
+                  <MapPinIcon className="w-7 h-7" strokeWidth={2} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-sans text-xs font-semibold uppercase tracking-[0.15em] mb-1"
+                        style={{ color: 'var(--amber)' }}>
+                    Địa chỉ lớp học
+                  </span>
+                  <span className="block font-sans font-bold text-white text-lg sm:text-xl leading-snug">
+                    289/26 Hồ Tùng Mậu, Bảo Lộc
+                  </span>
+                  <span className="block font-sans text-xs sm:text-sm mt-0.5 group-hover:underline"
+                        style={{ color: 'rgba(255,255,255,0.6)' }}>
+                    Bấm để xem đường đi trên Google Maps
+                  </span>
+                </span>
+              </a>
               <div className="flex flex-wrap gap-4 items-center mb-10">
                 <ButtonColorful
                   label="Bước 1: Điền form khảo sát"
