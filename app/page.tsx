@@ -170,7 +170,7 @@ export default function HomePage() {
                     Địa chỉ lớp học
                   </span>
                   <span className="block font-sans font-bold text-white text-lg sm:text-xl leading-snug">
-                    289/26 Hồ Tùng Mậu, Bảo Lộc
+                    289/26 Hồ Tùng Mậu,{' '}<span className="whitespace-nowrap">Bảo Lộc</span>
                   </span>
                   <span className="block font-sans text-xs sm:text-sm mt-0.5 group-hover:underline"
                         style={{ color: 'rgba(255,255,255,0.6)' }}>
