@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { HeroAurora } from '@/components/ui/hero-aurora'
 import { HeroSpotlight } from '@/components/ui/hero-spotlight'
@@ -413,8 +414,8 @@ export default function HomePage() {
 
             {/* Left photo — spans steps 01 and 03 */}
             <div className="hidden lg:block absolute left-[12px] top-0 w-56 pointer-events-none" style={{ zIndex: 0 }}>
-              <div className="rounded-2xl overflow-hidden" style={{ border: '2px solid rgba(29,158,117,0.22)', boxShadow: '0 8px 32px rgba(11,61,92,0.13)' }}>
-                <img src="/students/long-outdoor.jpg" alt="Thầy Long" className="w-full object-cover" style={{ aspectRatio: '2/3', objectPosition: 'center' }} />
+              <div className="relative rounded-2xl overflow-hidden" style={{ aspectRatio: '2/3', border: '2px solid rgba(29,158,117,0.22)', boxShadow: '0 8px 32px rgba(11,61,92,0.13)' }}>
+                <Image src="/students/long-outdoor.jpg" alt="Thầy Long" fill sizes="504px" className="object-cover" />
               </div>
               {/* Dot: step 01 level */}
               <div className="absolute" style={{ right: '-6px', top: '46px', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--teal)', border: '2px solid var(--mint)' }} />
@@ -424,8 +425,8 @@ export default function HomePage() {
 
             {/* Right photo — aligned with step 02 */}
             <div className="hidden lg:block absolute right-[12px] w-56 pointer-events-none" style={{ top: '108px', zIndex: 0 }}>
-              <div className="rounded-2xl overflow-hidden" style={{ border: '2px solid rgba(29,158,117,0.22)', boxShadow: '0 8px 32px rgba(11,61,92,0.13)' }}>
-                <img src="/students/long-forest.jpg" alt="Thầy Long" className="w-full object-cover" style={{ aspectRatio: '2/3', objectPosition: 'center' }} />
+              <div className="relative rounded-2xl overflow-hidden" style={{ aspectRatio: '2/3', border: '2px solid rgba(29,158,117,0.22)', boxShadow: '0 8px 32px rgba(11,61,92,0.13)' }}>
+                <Image src="/students/long-forest.jpg" alt="Thầy Long" fill sizes="224px" className="object-cover" />
               </div>
               {/* Dot: step 02 level */}
               <div className="absolute" style={{ left: '-6px', top: '46px', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--teal)', border: '2px solid var(--mint)' }} />

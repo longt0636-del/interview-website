@@ -1,38 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { findStudent } from '@/lib/google-sheets'
-import { determineTestLevel, suggestClass, StudentRecord } from '@/lib/test-logic'
-
-const isDev = process.env.NODE_ENV === 'development'
-const isPlaceholder = (process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '').includes('placeholder')
-
-function getMockStudent(name: string, phone: string): StudentRecord {
-  const lowerName = name.toLowerCase()
-  // Allow testing all 3 test levels via name keywords
-  const level =
-    lowerName.includes('test3') || lowerName.includes('test 3')
-      ? 'Giỏi (sử dụng tốt trong công việc hoặc học tập)'
-      : lowerName.includes('test2') || lowerName.includes('test 2')
-      ? 'Trung bình (hiểu và nói được một số câu phức tạp)'
-      : 'Cơ bản (biết từ vựng và ngữ pháp đơn giản)'
-
-  return {
-    name: name || 'Học viên test',
-    phone: phone || '0900000000',
-    dob: '01/01/2010',
-    level,
-    ieltsStudied: 'Chưa',
-    ieltsTested: 'Chưa',
-    examDate: '',
-    targetBand: '6.0',
-    skills: 'Nghe, Nói',
-    studyTime: '1–2 giờ',
-    bestTime: 'Tối',
-    workplace: 'THCS Nguyễn Du',
-    learningFormat: 'Học online 1 kèm 1',
-    testOverride: '',
-    rowIndex: 1,
-  }
-}
+import { determineTestLevel, suggestClass } from '@/lib/test-logic'
 
 export async function POST(req: NextRequest) {
   try {
@@ -66,7 +34,6 @@ export async function POST(req: NextRequest) {
       testLevel,
       suggestedClass,
       level: student.level,
-      _devMode: isDev && isPlaceholder,
     })
   } catch (err) {
     console.error('find-student error:', err)

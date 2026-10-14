@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import { PlayGlyph, useVideoLightbox } from '@/components/ui/video-testimonial';
 import { heroDeck } from '@/lib/testimonial-videos';
@@ -39,20 +40,13 @@ export function HeroSpotlight() {
   );
 
   // Lượt tải đầu chỉ kéo về poster của slide đầu (giữ LCP nhẹ). Khi trình duyệt
-  // rảnh mới nạp nốt các poster khác rồi gắn chúng vào DOM.
+  // rảnh mới gắn các slide còn lại vào DOM — lúc đó ảnh (bản đã nén) tự tải.
   React.useEffect(() => {
-    const hasIdle = typeof window !== 'undefined' && 'requestIdleCallback' in window;
+    const hasIdle = 'requestIdleCallback' in window;
+    const preloadRest = () => setPreloaded(true);
     const handle: number = hasIdle
       ? window.requestIdleCallback(preloadRest)
       : window.setTimeout(preloadRest, 1200);
-
-    function preloadRest() {
-      heroDeck.slice(1).forEach((item) => {
-        const img = new Image();
-        img.src = item.thumb;
-      });
-      setPreloaded(true);
-    }
 
     return () => {
       if (hasIdle) window.cancelIdleCallback(handle);
@@ -100,6 +94,7 @@ export function HeroSpotlight() {
           className="pointer-events-none absolute z-0 hidden overflow-hidden rounded-2xl sm:block"
           style={{
             width: 148,
+            aspectRatio: '4 / 5',
             left: -58,
             bottom: 54,
             transform: 'rotate(-8deg)',
@@ -107,14 +102,7 @@ export function HeroSpotlight() {
             boxShadow: '0 18px 40px rgba(0,0,0,0.45)',
           }}
         >
-          <img
-            src="/students/class-group.jpg"
-            alt=""
-            loading="lazy"
-            decoding="async"
-            className="w-full object-cover"
-            style={{ aspectRatio: '4 / 5', objectPosition: 'center' }}
-          />
+          <Image src="/students/class-group.jpg" alt="" fill sizes="248px" className="object-cover" />
         </div>
 
         {/* Primary — the deck itself */}
@@ -174,13 +162,15 @@ export function HeroSpotlight() {
                   className="group absolute inset-0 block w-full cursor-pointer touch-pan-y text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-[#5DCAA5]/70"
                   style={{ pointerEvents: current ? 'auto' : 'none', zIndex: current ? 2 : 1 }}
                 >
-                  <img
+                  <Image
                     src={item.thumb}
                     alt=""
-                    fetchPriority={i === 0 ? 'high' : 'auto'}
+                    fill
+                    sizes="(max-width: 420px) 100vw, 380px"
+                    loading={i === 0 ? 'eager' : undefined}
+                    fetchPriority={i === 0 ? 'high' : undefined}
                     draggable={false}
-                    decoding="async"
-                    className="absolute inset-0 h-full w-full select-none object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+                    className="select-none object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]"
                   />
 
                   {/* Hover-only dim so the poster art reads at full strength at rest */}

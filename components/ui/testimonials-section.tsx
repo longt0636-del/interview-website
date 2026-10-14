@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { GridPattern } from '@/components/ui/grid-pattern';
 import { VideoCardGrid } from '@/components/ui/video-testimonial';
@@ -80,15 +81,14 @@ function SquarePhoto({ src, alt }: { src: string; alt: string }) {
   return (
     <div
       className="group relative overflow-hidden rounded-2xl"
-      style={{ boxShadow: '0 4px 20px rgba(11,61,92,0.12)', border: '2px solid var(--mint)' }}
+      style={{ aspectRatio: '1 / 1', boxShadow: '0 4px 20px rgba(11,61,92,0.12)', border: '2px solid var(--mint)' }}
     >
-      <img
+      <Image
         src={src}
         alt={alt}
-        loading="lazy"
-        decoding="async"
-        className="w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-        style={{ aspectRatio: '1 / 1', objectPosition: 'center top' }}
+        fill
+        sizes="(min-width: 768px) 50vw, 100vw"
+        className="object-cover object-top transition-transform duration-500 ease-out group-hover:scale-105"
       />
     </div>
   );

@@ -9,33 +9,12 @@
   --gold-light: #FAC775;
   --ink:        #2C2C2A;
   --off-white:  #F4F8F5;
-
-  /* Aurora component color aliases */
-  --white:      #ffffff;
-  --black:      #000000;
-  --transparent: transparent;
-
-  /* Aurora gradient — brand-tuned teal + blue + amber */
-  --aurora-1: #1D9E75;
-  --aurora-2: #5DCAA5;
-  --aurora-3: #60a5fa;
-  --aurora-4: #EF9F27;
-  --aurora-5: #1D9E75;
 }
 
-@keyframes aurora {
-  from { background-position: 50% 50%, 50% 50%; }
-  to   { background-position: 350% 50%, 350% 50%; }
-}
-
-/* Single-bg-image version used by inline-style aurora */
+/* Hero aurora strip — transform-only so the blur is rasterised once */
 @keyframes auroraMove {
-  from { background-position: 50% 50%; }
-  to   { background-position: 250% 50%; }
-}
-
-@utility animate-aurora {
-  animation: aurora 60s linear infinite;
+  from { transform: translateX(-15%); }
+  to   { transform: translateX(-75%); }
 }
 
 @theme inline {

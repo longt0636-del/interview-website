@@ -1,6 +1,3 @@
-"use client";
-import type { CSSProperties } from "react";
-
 // Brand-teal aurora — navy palette only, no amber, stays far right
 const GRADIENT = `repeating-linear-gradient(
   100deg,
@@ -14,19 +11,33 @@ const GRADIENT = `repeating-linear-gradient(
 // Tight mask: only the right 40% shows, fades aggressively left
 const MASK = "radial-gradient(ellipse at 100% 50%, black 0%, black 20%, transparent 65%)";
 
-export function HeroAurora() {
-  const base: CSSProperties = {
-    position: "absolute",
-    inset: "-10px",
-    backgroundImage: GRADIENT,
-    backgroundSize: "400% 300%",
-    backgroundPosition: "50% 50%",
-    maskImage: MASK,
-    WebkitMaskImage: MASK,
-    willChange: "backgroundPosition",
-    animation: "auroraMove 12s linear infinite",
-  };
+// Mask sits on a still wrapper; the blurred strip inside slides with `transform`, so the
+// browser blurs it once and just moves the texture (animating background-position re-blurred
+// every frame — a steady battery drain on phones). Strip is 10× wide with a 40%-wide tile =
+// the old 400% background, and auroraMove's -15% → -75% equals the old 50% → 250% pan.
+function Layer({ blur, opacity, reverse }: { blur: number; opacity: number; reverse?: boolean }) {
+  return (
+    <div style={{ position: "absolute", inset: 0, opacity, maskImage: MASK, WebkitMaskImage: MASK }}>
+      <div
+        style={{
+          position: "absolute",
+          top: -10,
+          bottom: -10,
+          left: 0,
+          width: "1000%",
+          backgroundImage: GRADIENT,
+          backgroundSize: "40% 300%",
+          backgroundPosition: "0 50%",
+          filter: `blur(${blur}px)`,
+          willChange: "transform",
+          animation: `auroraMove 12s linear infinite${reverse ? " reverse" : ""}`,
+        }}
+      />
+    </div>
+  );
+}
 
+export function HeroAurora() {
   return (
     <div
       aria-hidden="true"
@@ -42,14 +53,9 @@ export function HeroAurora() {
       }}
     >
       {/* Soft base glow */}
-      <div style={{ ...base, filter: "blur(22px)", opacity: 0.22 }} />
+      <Layer blur={22} opacity={0.22} />
       {/* Sharper moving layer */}
-      <div style={{
-        ...base,
-        filter: "blur(10px)",
-        opacity: 0.14,
-        animation: "auroraMove 12s linear infinite reverse",
-      }} />
+      <Layer blur={10} opacity={0.14} reverse />
     </div>
   );
 }

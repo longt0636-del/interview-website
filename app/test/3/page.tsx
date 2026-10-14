@@ -41,6 +41,11 @@ const EXERCISE_CARDS: { id: string; Icon: typeof BookOpenIcon; title: string; sh
 
 const EXERCISE_ORDER = EXERCISE_CARDS.map((c) => c.id)
 
+const CARD_GROUPS = [
+  { group: 'reading', heading: 'Reading', count: 3, border: 'border-blue-200 hover:border-blue-400', hoverText: 'group-hover:text-blue-600', iconColor: '#2563eb', ctaColor: '#3B82F6' },
+  { group: 'listening', heading: 'Listening', count: 4, border: 'border-green-200 hover:border-green-400', hoverText: 'group-hover:text-green-600', iconColor: '#16a34a', ctaColor: '#22C55E' },
+] as const
+
 // file.type do trình duyệt tự đoán không đáng tin cậy (đặc biệt .m4a ghi từ iPhone/Safari
 // thường trả về rỗng hoặc 'audio/x-m4a'). Suy content-type từ đuôi file để luôn gửi giá trị
 // chuẩn lên Vercel Blob, thay vì phụ thuộc vào MIME type trình duyệt tự gán.
@@ -388,67 +393,38 @@ export default function Test3Page() {
 
         {/* Reading & Listening */}
         <div className="space-y-6 mb-8">
-          <div className="space-y-3">
-            <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">
-              Reading — {readingDoneCount}/3 phần đã làm
-            </h2>
-            {EXERCISE_CARDS.filter((c) => c.group === 'reading').map((card) => {
-              const result = scores[card.id]
-              const section = TEST3_SECTIONS[card.id]
-              return (
-                <button
-                  key={card.id}
-                  type="button"
-                  onClick={() => setActiveExerciseId(card.id)}
-                  className="w-full flex items-center gap-4 bg-white border-2 border-blue-200 hover:border-blue-400 rounded-xl p-4 transition-colors group text-left"
-                >
-                  <card.Icon className="w-6 h-6 shrink-0" style={{ color: card.group === 'reading' ? '#2563eb' : '#16a34a' }} />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
-                      {card.title} <span className="text-gray-400 font-normal text-xs">— {section.timeLabel}</span>
-                    </h3>
-                    <p className="text-gray-500 text-xs">
-                      {result ? `Đã hoàn thành: ${result.score}/${result.total} câu đúng` : 'Chưa làm'}
-                    </p>
-                  </div>
-                  <span className="text-sm font-medium shrink-0" style={{ color: result ? 'var(--teal)' : '#3B82F6' }}>
-                    {result ? 'Làm lại →' : 'Bắt đầu →'}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-
-          <div className="space-y-3">
-            <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">
-              Listening — {listeningDoneCount}/4 phần đã làm
-            </h2>
-            {EXERCISE_CARDS.filter((c) => c.group === 'listening').map((card) => {
-              const result = scores[card.id]
-              const section = TEST3_SECTIONS[card.id]
-              return (
-                <button
-                  key={card.id}
-                  type="button"
-                  onClick={() => setActiveExerciseId(card.id)}
-                  className="w-full flex items-center gap-4 bg-white border-2 border-green-200 hover:border-green-400 rounded-xl p-4 transition-colors group text-left"
-                >
-                  <card.Icon className="w-6 h-6 shrink-0" style={{ color: card.group === 'reading' ? '#2563eb' : '#16a34a' }} />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-800 group-hover:text-green-600 transition-colors">
-                      {card.title} <span className="text-gray-400 font-normal text-xs">— {section.timeLabel}</span>
-                    </h3>
-                    <p className="text-gray-500 text-xs">
-                      {result ? `Đã hoàn thành: ${result.score}/${result.total} câu đúng` : 'Chưa làm'}
-                    </p>
-                  </div>
-                  <span className="text-sm font-medium shrink-0" style={{ color: result ? 'var(--teal)' : '#22C55E' }}>
-                    {result ? 'Làm lại →' : 'Bắt đầu →'}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
+          {CARD_GROUPS.map((g) => (
+            <div key={g.group} className="space-y-3">
+              <h2 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">
+                {g.heading} — {g.group === 'reading' ? readingDoneCount : listeningDoneCount}/{g.count} phần đã làm
+              </h2>
+              {EXERCISE_CARDS.filter((c) => c.group === g.group).map((card) => {
+                const result = scores[card.id]
+                const section = TEST3_SECTIONS[card.id]
+                return (
+                  <button
+                    key={card.id}
+                    type="button"
+                    onClick={() => setActiveExerciseId(card.id)}
+                    className={`w-full flex items-center gap-4 bg-white border-2 ${g.border} rounded-xl p-4 transition-colors group text-left`}
+                  >
+                    <card.Icon className="w-6 h-6 shrink-0" style={{ color: g.iconColor }} />
+                    <div className="flex-1">
+                      <h3 className={`font-semibold text-gray-800 ${g.hoverText} transition-colors`}>
+                        {card.title} <span className="text-gray-400 font-normal text-xs">— {section.timeLabel}</span>
+                      </h3>
+                      <p className="text-gray-500 text-xs">
+                        {result ? `Đã hoàn thành: ${result.score}/${result.total} câu đúng` : 'Chưa làm'}
+                      </p>
+                    </div>
+                    <span className="text-sm font-medium shrink-0" style={{ color: result ? 'var(--teal)' : g.ctaColor }}>
+                      {result ? 'Làm lại →' : 'Bắt đầu →'}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          ))}
         </div>
 
         {activeExerciseId && (

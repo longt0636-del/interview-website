@@ -1,20 +1,26 @@
-import { google } from 'googleapis'
+import { auth, sheets as sheetsApi } from '@googleapis/sheets'
 import { StudentRecord } from './test-logic'
 
 const SHEET_ID   = '1f-AI4H-UMKDKSObyoEfZk_WlAvKuJZZDdoEgJ01T7SQ'
 const INFO_TAB   = 'Thông tin'
 const SCORES_TAB = 'Khảo sát test'
 
-function getAuth() {
+function getSheets() {
   const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON!)
-  return new google.auth.GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  return sheetsApi({
+    version: 'v4',
+    auth: new auth.GoogleAuth({ credentials, scopes: ['https://www.googleapis.com/auth/spreadsheets'] }),
   })
 }
 
-function getSheets() {
-  return google.sheets({ version: 'v4', auth: getAuth() })
+// Row (1-based) in "Khảo sát test" whose column-B name loosely matches; header row skipped.
+function findNameRow(nameRows: string[][], name: string): number | null {
+  const norm = name.trim().toLowerCase()
+  for (let i = 1; i < nameRows.length; i++) {
+    const cell = (nameRows[i]?.[0] || '').trim().toLowerCase()
+    if (cell && (cell.includes(norm) || norm.includes(cell))) return i + 1
+  }
+  return null
 }
 
 // 0-based column indices in "Thông tin" tab (verified from live sheet: A=0, G=6, N=13, X=23 …)
@@ -84,26 +90,6 @@ export interface TestSubmission {
   submittedAt:    string
 }
 
-// ─── Dev-mode: call gws.exe directly via spawnSync (no shell quoting issues) ──
-
-const GWS_EXE = 'C:\\Users\\ADMIN\\AppData\\Roaming\\npm\\node_modules\\@googleworkspace\\cli\\bin\\gws.exe'
-
-function gwsDirect(args: string[]): Record<string, unknown> {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { spawnSync } = require('child_process') as typeof import('child_process')
-  const result = spawnSync(GWS_EXE, args, {
-    encoding: 'utf-8',
-    shell: false,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  })
-  if (result.error) throw result.error
-  const json = (result.stdout || '').trim()
-  if (!json) throw new Error(`gws returned empty output. stderr: ${result.stderr}`)
-  const parsed = JSON.parse(json) as Record<string, unknown>
-  if (parsed.error) throw new Error(`gws API error: ${JSON.stringify(parsed.error)}`)
-  return parsed
-}
-
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
 function buildUpdateRanges(
@@ -151,52 +137,6 @@ function buildNewRow(data: TestSubmission): string[] {
     '', '', '', writing, data.recordingUrl || '']
 }
 
-// ─── Dev-mode write ───────────────────────────────────────────────────────────
-
-function saveTestResultDevMode(data: TestSubmission): void {
-  const tab = SCORES_TAB  // 'Khảo sát test'
-
-  // Find existing row by matching name in column B
-  let targetRow: number | null = null
-  try {
-    const readResult = gwsDirect([
-      'sheets', 'spreadsheets', 'values', 'get',
-      '--params', JSON.stringify({ spreadsheetId: SHEET_ID, range: `'${tab}'!B:B` }),
-    ]) as { values?: string[][] }
-
-    const nameRows = readResult.values || []
-    const normName = data.studentName.trim().toLowerCase()
-    for (let i = 1; i < nameRows.length; i++) {
-      const cell = (nameRows[i]?.[0] || '').trim().toLowerCase()
-      if (cell && (cell.includes(normName) || normName.includes(cell))) {
-        targetRow = i + 1
-        break
-      }
-    }
-  } catch (e) {
-    console.warn('[DEV] Could not read name column:', e)
-  }
-
-  if (targetRow) {
-    const ranges = buildUpdateRanges(data, targetRow, `'${tab}'`)
-    gwsDirect([
-      'sheets', 'spreadsheets', 'values', 'batchUpdate',
-      '--params', JSON.stringify({ spreadsheetId: SHEET_ID }),
-      '--json',   JSON.stringify({ valueInputOption: 'RAW', data: ranges }),
-    ])
-    console.log(`[DEV] Updated row ${targetRow} for "${data.studentName}"`)
-  } else {
-    gwsDirect([
-      'sheets', 'spreadsheets', 'values', 'append',
-      '--params', JSON.stringify({ spreadsheetId: SHEET_ID, range: `'${tab}'!A:O`, valueInputOption: 'RAW' }),
-      '--json',   JSON.stringify({ values: [buildNewRow(data)] }),
-    ])
-    console.log(`[DEV] Appended new row for "${data.studentName}"`)
-  }
-}
-
-// ─── Production: googleapis ───────────────────────────────────────────────────
-
 function makeRecord(row: string[], index: number, overrideCol = -1): StudentRecord {
   return {
     name:         row[COL.NAME]          || '',
@@ -218,25 +158,11 @@ function makeRecord(row: string[], index: number, overrideCol = -1): StudentReco
 }
 
 export async function findStudent(name: string, phone: string): Promise<StudentRecord | null> {
-  const isDev = process.env.NODE_ENV === 'development'
-  const isPlaceholder = (process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '').includes('placeholder')
-
-  let rows: string[][]
-
-  if (isDev && isPlaceholder) {
-    const result = gwsDirect([
-      'sheets', 'spreadsheets', 'values', 'get',
-      '--params', JSON.stringify({ spreadsheetId: SHEET_ID, range: `${INFO_TAB}!A:BA` }),
-    ]) as { values?: string[][] }
-    rows = result.values || []
-  } else {
-    const sheets = getSheets()
-    const res = await sheets.spreadsheets.values.get({
-      spreadsheetId: SHEET_ID,
-      range: `${INFO_TAB}!A:BA`,
-    })
-    rows = res.data.values || []
-  }
+  const res = await getSheets().spreadsheets.values.get({
+    spreadsheetId: SHEET_ID,
+    range: `${INFO_TAB}!A:BA`,
+  })
+  const rows: string[][] = res.data.values || []
 
   const overrideCol = findOverrideCol(rows[0])
 
@@ -275,18 +201,7 @@ export async function scheduleCallback(
   status = 'Đang tư vấn',
   insertIfMissing = false,
 ): Promise<void> {
-  const isDev = process.env.NODE_ENV === 'development'
-  const isPlaceholder = (process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '').includes('placeholder')
   const tab = SCORES_TAB
-
-  const findRow = (nameRows: string[][]): number | null => {
-    const norm = studentName.trim().toLowerCase()
-    for (let i = 1; i < nameRows.length; i++) {
-      const cell = (nameRows[i]?.[0] || '').trim().toLowerCase()
-      if (cell && (cell.includes(norm) || norm.includes(cell))) return i + 1
-    }
-    return null
-  }
 
   const updatePayload = (row: number, quotedTab: string) => [
     { range: `${quotedTab}!C${row}`, values: [[status]] },
@@ -296,37 +211,9 @@ export async function scheduleCallback(
   // Minimal row for a student who hasn't submitted a test yet: A-O (15 cols)
   const newRow = ['', studentName, status, '', callbackDate, '', '', '', '', '', '', '', '', '', '']
 
-  if (isDev && isPlaceholder) {
-    const readResult = gwsDirect([
-      'sheets', 'spreadsheets', 'values', 'get',
-      '--params', JSON.stringify({ spreadsheetId: SHEET_ID, range: `'${tab}'!B:B` }),
-    ]) as { values?: string[][] }
-
-    const targetRow = findRow(readResult.values || [])
-
-    if (targetRow) {
-      gwsDirect([
-        'sheets', 'spreadsheets', 'values', 'batchUpdate',
-        '--params', JSON.stringify({ spreadsheetId: SHEET_ID }),
-        '--json', JSON.stringify({ valueInputOption: 'RAW', data: updatePayload(targetRow, `'${tab}'`) }),
-      ])
-      console.log(`[DEV] scheduleCallback: row ${targetRow} → "${status}", date=${callbackDate}`)
-    } else if (insertIfMissing) {
-      gwsDirect([
-        'sheets', 'spreadsheets', 'values', 'append',
-        '--params', JSON.stringify({ spreadsheetId: SHEET_ID, range: `'${tab}'!A:O`, valueInputOption: 'RAW' }),
-        '--json', JSON.stringify({ values: [newRow] }),
-      ])
-      console.log(`[DEV] scheduleCallback: inserted new row for "${studentName}" → "${status}", date=${callbackDate}`)
-    } else {
-      console.warn('[DEV] scheduleCallback: student not found:', studentName)
-    }
-    return
-  }
-
   const sheets = getSheets()
   const existing = await sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: `${tab}!B:B` })
-  const targetRow = findRow(existing.data.values || [])
+  const targetRow = findNameRow(existing.data.values || [], studentName)
 
   if (targetRow) {
     await sheets.spreadsheets.values.batchUpdate({
@@ -346,32 +233,13 @@ export async function scheduleCallback(
 }
 
 export async function saveTestResult(data: TestSubmission): Promise<void> {
-  const isDev = process.env.NODE_ENV === 'development'
-  const isPlaceholder = (process.env.GOOGLE_SERVICE_ACCOUNT_JSON || '').includes('placeholder')
-
-  if (isDev && isPlaceholder) {
-    saveTestResultDevMode(data)
-    return
-  }
-
-  // Production: googleapis with service account
   const sheets = getSheets()
   const existing = await sheets.spreadsheets.values.get({
     spreadsheetId: SHEET_ID,
     range: `${SCORES_TAB}!B:B`,
   })
 
-  const nameRows = existing.data.values || []
-  let targetRow: number | null = null
-  const normName = data.studentName.trim().toLowerCase()
-
-  for (let i = 1; i < nameRows.length; i++) {
-    const cell = (nameRows[i][0] || '').trim().toLowerCase()
-    if (cell && (cell.includes(normName) || normName.includes(cell))) {
-      targetRow = i + 1
-      break
-    }
-  }
+  const targetRow = findNameRow(existing.data.values || [], data.studentName)
 
   if (targetRow) {
     const updateData = buildUpdateRanges(data, targetRow, SCORES_TAB)

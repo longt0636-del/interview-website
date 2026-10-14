@@ -9,7 +9,6 @@ import {
   estimateGradeFromDOB,
 } from '@/lib/test-logic'
 
-const isDev = process.env.NODE_ENV === 'development'
 const isResendPlaceholder = !(process.env.RESEND_API_KEY) || (process.env.RESEND_API_KEY || '').includes('placeholder')
 
 export async function POST(req: NextRequest) {
@@ -78,7 +77,7 @@ export async function POST(req: NextRequest) {
       submittedAt:    new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
     }
 
-    // Save to Google Sheet (dev uses gws CLI internally)
+    // Save to Google Sheet
     await saveTestResult(submission)
 
     // Send email to Long (skip only when Resend key is a placeholder)
