@@ -9,6 +9,8 @@ const env = {
   ...process.env,
   // Hộp "Web đang được nâng cấp" (components/MaintenanceNotice.tsx) chỉ dành cho bản Vercel — bản Cloudflare tự ẩn.
   NEXT_PUBLIC_PLATFORM: 'cloudflare',
+  // Mã commit đang dựng (Workers Builds tự có WORKERS_CI_COMMIT_SHA; dựng bằng Docker thì scripts/cf-docker-build.sh truyền GIT_SHA).
+  NEXT_PUBLIC_GIT_SHA: process.env.WORKERS_CI_COMMIT_SHA || process.env.GIT_SHA || '',
   NEXT_PUBLIC_RECORDING_STORE: 'r2',
   NEXT_PUBLIC_MEDIA_BASE: process.env.NEXT_PUBLIC_MEDIA_BASE ?? 'https://portal.longielts.workers.dev/f/website',
 }

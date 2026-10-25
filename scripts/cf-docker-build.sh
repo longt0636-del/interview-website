@@ -19,7 +19,7 @@ docker run --rm "${PORT_ARGS[@]}" \
   -v "$HERE:/src" \
   -v "longielts-cf-$NAME-app:/app" \
   -v "$WRANGLER_DIR:/root/.config/.wrangler" \
-  -e ACTIONS="$ACTIONS" -e WRANGLER_SEND_METRICS=false \
+  -e ACTIONS="$ACTIONS" -e WRANGLER_SEND_METRICS=false -e GIT_SHA="$(git -C "$HERE" rev-parse HEAD 2>/dev/null)" \
   -w /app node:24-bookworm bash -c '
     set -euo pipefail
     command -v rsync >/dev/null || { apt-get -qq update >/dev/null && apt-get -qq install -y rsync >/dev/null; }

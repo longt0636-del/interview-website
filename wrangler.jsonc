@@ -15,5 +15,7 @@
   ],
   "vars": { "NEXT_INC_CACHE_R2_PREFIX": "website" },
   "limits": { "cpu_ms": 60000 },
-  "observability": { "enabled": true, "head_sampling_rate": 1 }
+  "observability": { "enabled": true, "head_sampling_rate": 1 },
+  // Lỗi (5xx, lỗi ném ra, console.error) gửi sang Tail Worker "error-sink" → bảng runtime_errors cho routine đọc.
+  "tail_consumers": [{ "service": "error-sink" }]
 }
