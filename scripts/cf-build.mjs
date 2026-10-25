@@ -7,6 +7,8 @@ import { spawnSync } from 'node:child_process'
 
 const env = {
   ...process.env,
+  // Hộp "Web đang được nâng cấp" (components/MaintenanceNotice.tsx) chỉ dành cho bản Vercel — bản Cloudflare tự ẩn.
+  NEXT_PUBLIC_PLATFORM: 'cloudflare',
   NEXT_PUBLIC_RECORDING_STORE: 'r2',
   NEXT_PUBLIC_MEDIA_BASE: process.env.NEXT_PUBLIC_MEDIA_BASE ?? 'https://portal.longielts.workers.dev/f/website',
 }
