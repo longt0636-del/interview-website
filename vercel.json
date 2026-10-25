@@ -1,0 +1,26 @@
+{
+  "redirects": [
+    {
+      "source": "/((?!api/|_next/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "interview-website-seven.vercel.app"
+        }
+      ],
+      "destination": "https://website.longielts.workers.dev/$1",
+      "permanent": false
+    },
+    {
+      "source": "/((?!api/|_next/).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "interview-website-nfseg.vercel.app"
+        }
+      ],
+      "destination": "https://website.longielts.workers.dev/$1",
+      "permanent": false
+    }
+  ]
+}
