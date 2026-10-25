@@ -45,3 +45,9 @@ next-env.d.ts
 
 # playwright-cli artifacts
 .playwright-cli/
+
+# Cloudflare (25/10/2026)
+.open-next/
+.wrangler/
+.dev.vars*
+.videos-ngoai-build/

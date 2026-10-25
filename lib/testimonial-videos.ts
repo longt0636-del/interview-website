@@ -1,5 +1,9 @@
 import type { VideoItem } from '@/components/ui/video-testimonial';
 
+// Video nặng (9–29 MB) — Cloudflare chỉ nhận file tĩnh tới 25 MB, nên bản Cloudflare (25/10/2026) phát video từ kho file R2
+// qua portal (có tua). NEXT_PUBLIC_MEDIA_BASE đặt lúc build Cloudflare (scripts/cf-build.mjs); Vercel để trống = public/ như cũ.
+const MEDIA = process.env.NEXT_PUBLIC_MEDIA_BASE ?? '';
+
 /**
  * Single source of truth for student video testimonials.
  * Used by the hero deck and the testimonials grid so the two never drift.
@@ -15,7 +19,7 @@ export const testimonialVideos: VideoItem[] = [
     shortName: 'Ngọc Lan',
     band: 'IELTS 7.5',
     label: 'Từ mất gốc Reading đến band 7.5 sau một lộ trình.',
-    src: '/videos/lan-ielts-75.mp4',
+    src: `${MEDIA}/videos/lan-ielts-75.mp4`,
     thumb: '/students/thumb-lan.jpg',
     poster: '/students/poster-lan.jpg',
     duration: '4:46',
@@ -26,7 +30,7 @@ export const testimonialVideos: VideoItem[] = [
     shortName: 'Minh Thư',
     band: 'IELTS 7.5',
     label: 'Vừa đi làm vừa học — và vẫn cán mốc 7.5.',
-    src: '/videos/minh-thu-ielts-75.mp4',
+    src: `${MEDIA}/videos/minh-thu-ielts-75.mp4`,
     thumb: '/students/thumb-minh-thu.jpg',
     poster: '/students/poster-minh-thu.jpg',
     duration: '2:19',
@@ -39,7 +43,7 @@ export const testimonialVideos: VideoItem[] = [
     // "Nghe ... kể lại") đọc sai — ghi đè bằng chữ hợp với video cả lớp.
     heroEyebrow: 'Cảm nhận cả lớp',
     heroLine: 'Cả lớp kể chuyện 1 năm qua',
-    src: '/videos/students-share.mp4',
+    src: `${MEDIA}/videos/students-share.mp4`,
     thumb: '/students/thumb-students-share.jpg',
     poster: '/students/poster-students-share.jpg',
     duration: '2:20',

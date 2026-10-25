@@ -73,6 +73,31 @@ const MAX_RECORDING_BYTES = 50 * 1024 * 1024
 // Nói cho học viên biết CHUYỆN GÌ XẢY RA và LÀM GÌ TIẾP, thay vì đưa nguyên câu tiếng Anh của thư
 // viện upload. 17/09/2026: chọn nhầm file `.amr` (máy Android hay ghi kiểu này) thì thứ hiện ra là
 // "Vercel Blob: Failed to retrieve the client token" — không ai đoán được là do định dạng file.
+/** Gửi file ghi âm lên máy chủ (bản Cloudflare) — XMLHttpRequest để có thanh tiến độ như thư viện Vercel Blob. */
+function putRecording(pathname: string, file: File, contentType: string, onProgress: (pct: number) => void): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('PUT', `/api/upload-recording?path=${encodeURIComponent(pathname)}`)
+    xhr.setRequestHeader('Content-Type', contentType)
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100))
+    }
+    xhr.onload = () => {
+      let body: { pathname?: string; error?: string } = {}
+      try {
+        body = JSON.parse(xhr.responseText)
+      } catch {
+        // để trống — báo lỗi chung bên dưới
+      }
+      if (xhr.status >= 200 && xhr.status < 300 && body.pathname) resolve(body.pathname)
+      else reject(new Error(body.error || `upload HTTP ${xhr.status}`))
+    }
+    xhr.onerror = () => reject(new Error('network error'))
+    xhr.ontimeout = () => reject(new Error('timeout'))
+    xhr.send(file)
+  })
+}
+
 function friendlyUploadError(raw: unknown): string {
   const text = raw instanceof Error ? raw.message : String(raw ?? '')
   if (/định dạng|dung lượng|quá 50MB/i.test(text)) return text
@@ -274,16 +299,25 @@ export default function Test3Page() {
 
       const contentType = AUDIO_MIME_BY_EXT[ext] || file.type || 'application/octet-stream'
 
-      const blob = await upload(`recordings/${timestamp}_${safeName}`, file, {
-        access: 'private',
-        contentType,
-        multipart: true,
-        handleUploadUrl: '/api/upload-recording',
-        onUploadProgress: ({ percentage }) =>
-          setRecordings((prev) => prev.map((r) => (r.id === id ? { ...r, progress: percentage } : r))),
-      })
+      const onProgress = (percentage: number) =>
+        setRecordings((prev) => prev.map((r) => (r.id === id ? { ...r, progress: percentage } : r)))
+      const pathname = `recordings/${timestamp}_${safeName}`
+      // Cloudflare (25/10/2026): gửi thẳng file lên máy chủ của web, máy chủ cất vào kho R2 riêng tư (không giới hạn
+      // 4,5 MB như Vercel). Bản Vercel vẫn gửi thẳng lên Vercel Blob như trước.
+      const storedPath =
+        process.env.NEXT_PUBLIC_RECORDING_STORE === 'r2'
+          ? await putRecording(pathname, file, contentType, onProgress)
+          : (
+              await upload(pathname, file, {
+                access: 'private',
+                contentType,
+                multipart: true,
+                handleUploadUrl: '/api/upload-recording',
+                onUploadProgress: ({ percentage }) => onProgress(percentage),
+              })
+            ).pathname
 
-      const proxyUrl = `${window.location.origin}/api/recording?path=${encodeURIComponent(blob.pathname)}`
+      const proxyUrl = `${window.location.origin}/api/recording?path=${encodeURIComponent(storedPath)}`
       setRecordings((prev) => prev.map((r) => (r.id === id ? { ...r, url: proxyUrl, uploading: false } : r)))
     } catch (e: unknown) {
       const message = friendlyUploadError(e)

@@ -1,4 +1,6 @@
-import { auth, sheets as sheetsApi } from '@googleapis/sheets'
+// 25/10/2026: bỏ gói `@googleapis/sheets` (thư viện Node, không chạy gọn trên Cloudflare Workers) — gọi REST thẳng qua
+// lib/google-lite.ts. Trên Cloudflare dùng tài khoản Google của thầy (chủ sổ), trên Vercel vẫn tài khoản dịch vụ.
+import { oauthUserFromEnv, serviceAccountFromEnv, sheetsClient } from './google-lite'
 import { StudentRecord } from './test-logic'
 
 const SHEET_ID   = '1f-AI4H-UMKDKSObyoEfZk_WlAvKuJZZDdoEgJ01T7SQ'
@@ -6,11 +8,7 @@ const INFO_TAB   = 'Thông tin'
 const SCORES_TAB = 'Khảo sát test'
 
 function getSheets() {
-  const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON!)
-  return sheetsApi({
-    version: 'v4',
-    auth: new auth.GoogleAuth({ credentials, scopes: ['https://www.googleapis.com/auth/spreadsheets'] }),
-  })
+  return sheetsClient(oauthUserFromEnv() ?? serviceAccountFromEnv())
 }
 
 // Row (1-based) in "Khảo sát test" whose column-B name loosely matches; header row skipped.

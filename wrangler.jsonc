@@ -1,0 +1,19 @@
+// Cấu hình chạy web tuyển sinh (bài test đầu vào) trên Cloudflare Workers (25/10/2026).
+// Build + deploy: `bash scripts/cf-docker-build.sh build deploy`. Khoá Google đặt bằng `wrangler secret`.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "website",
+  "main": "cloudflare/worker.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "website" }],
+  "r2_buckets": [
+    // File ghi âm Speaking của học viên — RIÊNG TƯ, chỉ mở qua /api/recording (không chung kho công khai với portal).
+    { "binding": "RECORDINGS", "bucket_name": "longielts-recordings" },
+    { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "longielts-next-cache" }
+  ],
+  "vars": { "NEXT_INC_CACHE_R2_PREFIX": "website" },
+  "limits": { "cpu_ms": 60000 },
+  "observability": { "enabled": true, "head_sampling_rate": 1 }
+}

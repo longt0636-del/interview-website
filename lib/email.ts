@@ -1,8 +1,42 @@
 import { Resend } from 'resend'
+import { getAccessTokenFor, oauthUserFromEnv } from './google-lite'
 import { TestSubmission } from './google-sheets'
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY!)
+}
+
+// 25/10/2026 (chuyển sang Cloudflare): khoá Resend trên Vercel là loại "Sensitive", không đọc lại được để chép sang.
+// Không có khoá Resend thì gửi bằng Gmail của chính thầy qua Gmail API (cùng tài khoản Google portal đang dùng, đã có
+// quyền gmail.modify) — thư thật từ longt0636@gmail.com, không còn rơi vào Spam như địa chỉ onboarding@resend.dev.
+async function sendMail(msg: { from: string; to: string; subject: string; text: string }): Promise<{ error: unknown }> {
+  if (process.env.RESEND_API_KEY) return getResend().emails.send(msg)
+  const user = oauthUserFromEnv()
+  if (!user) return { error: 'Chưa cấu hình cách gửi thư (RESEND_API_KEY hoặc GOOGLE_CLIENT_ID/SECRET/REFRESH_TOKEN).' }
+  const enc = (t: string) => `=?UTF-8?B?${Buffer.from(t, 'utf8').toString('base64')}?=`
+  const mime = [
+    `From: ${enc('LongIELTS — Thầy Long')} <${LONG_EMAIL}>`,
+    `To: ${msg.to}`,
+    `Subject: ${enc(msg.subject)}`,
+    'MIME-Version: 1.0',
+    'Content-Type: text/plain; charset="UTF-8"',
+    'Content-Transfer-Encoding: base64',
+    '',
+    Buffer.from(msg.text, 'utf8').toString('base64'),
+  ].join('\r\n')
+  const token = await getAccessTokenFor(user, [])
+  const quota = process.env.GOOGLE_QUOTA_PROJECT
+  const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...(quota ? { 'X-Goog-User-Project': quota } : {}),
+    },
+    body: JSON.stringify({ raw: Buffer.from(mime, 'utf8').toString('base64url') }),
+  })
+  if (!res.ok) return { error: `Gmail HTTP ${res.status}: ${(await res.text()).slice(0, 300)}` }
+  return { error: null }
 }
 const LONG_EMAIL = 'longt0636@gmail.com'
 
@@ -145,7 +179,7 @@ Xem chi tiết: https://docs.google.com/spreadsheets/d/1f-AI4H-UMKDKSObyoEfZk_Wl
 
   const subject = `[Học viên mới]${isPartial ? '[BÀI THIẾU]' : ''} ${data.studentName} — ${testName}`
 
-  const { error } = await getResend().emails.send({
+  const { error } = await sendMail({
     from: fromAddress,
     to: LONG_EMAIL,
     subject,
@@ -161,7 +195,7 @@ export async function sendConfirmationToStudent(
   studentName: string
 ): Promise<void> {
   if (!studentEmail) return
-  const { error } = await getResend().emails.send({
+  const { error } = await sendMail({
     from: process.env.RESEND_FROM_EMAIL || 'LongIELTS <onboarding@resend.dev>',
     to: studentEmail,
     subject: 'Thầy Long đã nhận được bài test của bạn!',
