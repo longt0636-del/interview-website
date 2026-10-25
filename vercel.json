@@ -1,25 +1,25 @@
 {
   "redirects": [
     {
-      "source": "/((?!api/|_next/).*)",
+      "source": "/:path*",
       "has": [
         {
           "type": "host",
           "value": "interview-website-seven.vercel.app"
         }
       ],
-      "destination": "https://website.longielts.workers.dev/$1",
+      "destination": "https://website.longielts.workers.dev/:path*",
       "permanent": false
     },
     {
-      "source": "/((?!api/|_next/).*)",
+      "source": "/:path*",
       "has": [
         {
           "type": "host",
           "value": "interview-website-nfseg.vercel.app"
         }
       ],
-      "destination": "https://website.longielts.workers.dev/$1",
+      "destination": "https://website.longielts.workers.dev/:path*",
       "permanent": false
     }
   ]
