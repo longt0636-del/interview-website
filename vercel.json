@@ -21,6 +21,17 @@
       ],
       "destination": "https://website.longielts.workers.dev/$1",
       "permanent": false
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "longielts-website.vercel.app"
+        }
+      ],
+      "destination": "https://website.longielts.workers.dev/$1",
+      "permanent": false
     }
   ]
 }
