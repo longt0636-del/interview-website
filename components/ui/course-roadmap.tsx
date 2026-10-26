@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 
 /**
  * Lộ trình 3 khoá (26/10/2026), thay cho 3 thẻ khoá học bấm ra brochure Canva.
- * Một đường đi từ "Bây giờ" tới "Mục tiêu 7.0+": khi cuộn tới thì đường tự vẽ, các mốc band
+ * Một đường đi từ "Bây giờ" tới "Mục tiêu 6.0-7.0+": khi cuộn tới thì đường tự vẽ, các mốc band
  * hiện lần lượt. Mỗi chặng có vài câu học sinh ở trình độ đó hay nghĩ trong đầu; bấm vào chặng
  * nào thì chi tiết khoá đó mở ngay trên trang (máy tính: khung bên dưới; điện thoại: ngay dưới chặng).
  */
@@ -87,11 +87,15 @@ export function CourseRoadmap({ formUrl }: { formUrl: string }) {
           return (
             <div
               key={band}
-              className="absolute top-0 flex w-max -translate-x-1/2 flex-col items-center whitespace-nowrap"
+              className={cn(
+                'absolute top-0 flex w-max flex-col whitespace-nowrap',
+                // Mốc đích chữ dài: canh phải để không tràn mép màn hình hẹp, chấm tròn vẫn nằm đúng cuối đường
+                last ? '-translate-x-full items-end' : '-translate-x-1/2 items-center',
+              )}
               style={{ left: `${(i / courses.length) * 100}%` }}
             >
               <motion.div
-                className="flex flex-col items-center"
+                className={cn('flex flex-col', last ? 'items-end' : 'items-center')}
                 initial={{ opacity: reduce ? 1 : 0, scale: reduce ? 1 : 0.95, y: reduce ? 0 : 6 }}
                 animate={shown ? { opacity: 1, scale: 1, y: 0 } : undefined}
                 transition={{ duration: reduce ? 0 : 0.45, ease: EASE, delay: reduce ? 0 : 0.15 + (i / courses.length) * DRAW }}
@@ -106,7 +110,7 @@ export function CourseRoadmap({ formUrl }: { formUrl: string }) {
                   {band}
                 </span>
                 <span
-                  className="mt-2 flex h-5 w-5 items-center justify-center rounded-full"
+                  className={cn('mt-2 flex h-5 w-5 items-center justify-center rounded-full', last && '-mr-2.5')}
                   style={{
                     background: last ? 'var(--amber)' : '#fff',
                     border: `3px solid ${last ? 'var(--amber)' : i <= activeIndex ? 'var(--amber)' : 'var(--teal)'}`,
@@ -176,7 +180,7 @@ export function CourseRoadmap({ formUrl }: { formUrl: string }) {
             <FlagIcon />
           </span>
           <p className="pt-1 font-sans text-sm font-semibold" style={{ color: 'var(--navy)' }}>
-            Mục tiêu <span className="font-mono text-lg font-bold" style={{ color: 'var(--amber)' }}>7.0+</span>
+            Mục tiêu <span className="font-mono text-lg font-bold" style={{ color: 'var(--amber)' }}>6.0-7.0+</span>
           </p>
         </li>
       </ol>

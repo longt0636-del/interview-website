@@ -1,4 +1,4 @@
-// Ba khoá đang tuyển, xếp thành lộ trình từ mất gốc tới 7.0+ (thay cho 3 thẻ khoá học bấm ra brochure Canva, 26/10/2026).
+// Ba khoá đang tuyển, xếp thành lộ trình từ mất gốc tới 6.0-7.0+ (thay cho 3 thẻ khoá học bấm ra brochure Canva, 26/10/2026).
 // Nội dung lấy từ 3 brochure Canva: Foundation 3-4 (DAHK0SMiSBA), IELTS Cơ Bản (DAG2BsuxsLU), Road to IELTS (DAG2BtdxhVM).
 // Học phí giữ đúng con số web đang hiện trước đó, riêng giá gốc Road to IELTS theo brochure: 1.750.000đ (Long chốt 26/10/2026).
 
@@ -120,7 +120,8 @@ export const courses: Course[] = [
     id: 'road-to-ielts',
     name: 'Road to IELTS',
     from: '5.0',
-    to: '7.0+',
+    // Brochure cam kết tối thiểu 6.0 sau 1-1,5 năm; nhiều bạn lên 7.0+ (Long chốt ghi 6.0-7.0+, 26/10/2026)
+    to: '6.0-7.0+',
     tagline: 'Chiến lược làm bài và luyện đề như thi thật.',
     signs: [
       'Đọc hiểu bài mà làm đề vẫn sai.',
