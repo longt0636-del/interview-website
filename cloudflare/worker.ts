@@ -124,7 +124,9 @@ async function serveMedia(request: Request, env: Env, url: URL): Promise<Respons
 export default {
   async fetch(request: Request, env: Env, ctx: unknown): Promise<Response> {
     const url = new URL(request.url)
-    if (url.pathname.startsWith('/media/') && (request.method === 'GET' || request.method === 'HEAD')) {
+    // /audio/* (bài nghe Listening, Test 2 + 3) cùng lý do (26/10/2026): học sinh iPhone báo không nghe được — kho file tĩnh
+    // trả nguyên file 200 khi trình duyệt xin từng đoạn, Safari từ chối phát.
+    if ((url.pathname.startsWith('/media/') || url.pathname.startsWith('/audio/')) && (request.method === 'GET' || request.method === 'HEAD')) {
       try {
         return await serveMedia(request, env, url)
       } catch (e) {
