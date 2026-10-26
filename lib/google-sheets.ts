@@ -42,6 +42,15 @@ const COL = {
 // Resolved by header text (not a fixed index) so it keeps working if the Form adds questions.
 const OVERRIDE_HEADER = /chỉ\s*định/i
 
+// Câu "Lịch trong tuần của con…" thêm vào form 26/10/2026 — Google chèn cột mới trước các cột thầy tự thêm,
+// nên tìm theo tên cột chứ không cố định vị trí.
+const SCHEDULE_HEADER = /lịch\s*trong\s*tuần/i
+
+function findScheduleCol(header: string[] | undefined): number {
+  if (!header) return -1
+  return header.findIndex(h => SCHEDULE_HEADER.test((h || '').normalize('NFC').trim()))
+}
+
 function findOverrideCol(header: string[] | undefined): number {
   if (!header) return -1
   return header.findIndex(h => OVERRIDE_HEADER.test((h || '').trim()))
@@ -135,7 +144,7 @@ function buildNewRow(data: TestSubmission): string[] {
     '', '', '', writing, data.recordingUrl || '']
 }
 
-function makeRecord(row: string[], index: number, overrideCol = -1): StudentRecord {
+function makeRecord(row: string[], index: number, overrideCol = -1, scheduleCol = -1): StudentRecord {
   return {
     name:         row[COL.NAME]          || '',
     phone:        row[COL.PHONE]         || '',
@@ -151,6 +160,7 @@ function makeRecord(row: string[], index: number, overrideCol = -1): StudentReco
     workplace:    row[COL.WORKPLACE]     || '',
     learningFormat: row[COL.LEARNING_FORMAT] || '',
     testOverride: overrideCol >= 0 ? (row[overrideCol] || '') : '',
+    schedule:     scheduleCol >= 0 ? (row[scheduleCol] || '') : '',
     rowIndex:     index + 1,
   }
 }
@@ -163,6 +173,7 @@ export async function findStudent(name: string, phone: string): Promise<StudentR
   const rows: string[][] = res.data.values || []
 
   const overrideCol = findOverrideCol(rows[0])
+  const scheduleCol = findScheduleCol(rows[0])
 
   const normPhone = phone.replace(/\D/g, '').slice(-9)
   const normName  = name.trim().toLowerCase()
@@ -182,7 +193,7 @@ export async function findStudent(name: string, phone: string): Promise<StudentR
 
     if (nameMatch && phoneMatch) {
       // Perfect match — stop immediately
-      return makeRecord(row, i, overrideCol)
+      return makeRecord(row, i, overrideCol, scheduleCol)
     }
     if ((nameMatch || phoneMatch) && !partialMatch) {
       partialMatch = { row, index: i }
@@ -190,7 +201,7 @@ export async function findStudent(name: string, phone: string): Promise<StudentR
     }
   }
 
-  return partialMatch ? makeRecord(partialMatch.row, partialMatch.index, overrideCol) : null
+  return partialMatch ? makeRecord(partialMatch.row, partialMatch.index, overrideCol, scheduleCol) : null
 }
 
 export async function scheduleCallback(

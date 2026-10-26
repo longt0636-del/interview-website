@@ -49,6 +49,8 @@ export interface EmailExtras {
   workplace?: string
   learningFormat?: string
   ieltsStudied?: string
+  /** Câu "Lịch trong tuần của con" trong form (thêm 26/10/2026). */
+  schedule?: string
   gradeEstimate?: string
   specialNotice?: string | null
   /** Các phần học viên chưa làm khi bấm nộp — rỗng nghĩa là nộp đầy đủ. */
@@ -67,25 +69,23 @@ const CLASS_DESCRIPTIONS: Record<string, string> = {
 
 // Mô tả ngắn dùng riêng cho tin nhắn Zalo: chỉ số buổi/tuần + học phí/tháng
 const ZALO_CLASS_DESC: Record<string, string> = {
-  'IELTS Nền Tảng (Trình độ 3-4)': '2 buổi/tuần – học phí: 1.200.000đ/tháng',
-  'IELTS Căn Bản (Trình độ 4-5)': '2 buổi/tuần – học phí: 1.200.000đ/tháng',
-  'Complete IELTS (Trình độ 5-6+)': '2 buổi/tuần – học phí: 1.500.000đ/tháng',
+  'IELTS Nền Tảng (Trình độ 3-4)': '2 buổi/tuần, học phí 1.200.000đ/tháng',
+  'IELTS Căn Bản (Trình độ 4-5)': '2 buổi/tuần, học phí 1.200.000đ/tháng',
+  'Complete IELTS (Trình độ 5-6+)': '2 buổi/tuần, học phí 1.500.000đ/tháng',
 }
 
 function buildZaloMessage(data: TestSubmission, extras: EmailExtras): string {
   const firstName = data.studentName.trim().split(' ').pop() || data.studentName
   const classDesc = ZALO_CLASS_DESC[data.suggestedClass] || CLASS_DESCRIPTIONS[data.suggestedClass] || ''
   const notice = extras.specialNotice
-    ? `\n⚠️ *Lưu ý:* ${extras.specialNotice}`
+    ? `\nLưu ý: ${extras.specialNotice}`
     : ''
 
-  return `Chào em.
-
-Cảm ơn ${firstName} đã hoàn thành bài kiểm tra đầu vào của lớp thầy!
-
-Dựa trên kết quả, thầy thấy ${firstName} phù hợp với lớp *${data.suggestedClass}* (${classDesc}).${notice}
-
-Em có thể sắp xếp tham gia 2 buổi học thử miễn phí để trải nghiệm trực tiếp lớp học không?`
+  // 26/10/2026: viết cho PHỤ HUYNH, gửi SAU cuộc gọi trả kết quả — đúng mẫu mục 5 Doc "SOP tư vấn học viên mới".
+  return `Dạ thầy Long gửi anh/chị kết quả bài kiểm tra của con ${firstName} ạ.
+Con làm tốt: [điểm mạnh]. Cần cải thiện: [điểm yếu].
+Lớp: ${data.suggestedClass}, ${classDesc}, tài liệu 100.000đ đóng một lần.${notice}
+Học thử: [thứ, ngày, giờ] tại 289/26 Hồ Tùng Mậu, Bảo Lộc. Học xong 2 buổi anh/chị mới quyết, chưa phải đóng gì ạ.`
 }
 
 export async function sendResultToLong(data: TestSubmission, extras?: EmailExtras): Promise<void> {
@@ -124,7 +124,7 @@ Trình độ tự báo cáo: ${extras.studentLevel}
 Đã từng học IELTS chưa: ${extras.ieltsStudied || 'Chưa điền'}
 Thời gian dự kiến thi: ${extras.examDate || 'Chưa xác định'}
 Band mục tiêu: ${extras.targetBand || 'Chưa điền'}
-Bạn thích học hình thức nào: ${extras.learningFormat || 'Chưa điền'}`
+Lịch trong tuần: ${extras.schedule || 'Chưa điền'}`
     : ''
 
   const specialNoticeSection = extras?.specialNotice
@@ -149,11 +149,11 @@ Bạn thích học hình thức nào: ${extras.learningFormat || 'Chưa điền'
     ? `\n⚠️ BÀI NỘP CHƯA ĐẦY ĐỦ — học viên chủ động nộp phần đã làm.\nChưa làm: ${extras!.missingParts!.join(', ')}\n`
     : ''
 
-  const zaloMsg = extras ? `\n\n${'─'.repeat(50)}\n📱 GỢI Ý TIN NHẮN ZALO (paste ngay):\n${'─'.repeat(50)}\n\n${buildZaloMessage(data, extras)}\n${'─'.repeat(50)}` : ''
+  const zaloMsg = extras ? `\n\n${'─'.repeat(50)}\n📱 TIN ZALO GỬI PHỤ HUYNH (gửi SAU khi gọi trả kết quả, điền chỗ [ ]):\n${'─'.repeat(50)}\n\n${buildZaloMessage(data, extras)}\n${'─'.repeat(50)}` : ''
   const fromAddress = process.env.RESEND_FROM_EMAIL || 'LongIELTS <onboarding@resend.dev>'
 
   const body = `
-Học viên mới nộp bài — cần xem xét và liên hệ.
+Học viên mới nộp bài. Việc tiếp theo: thầy xem bài, chọn lớp, rồi GỌI PHỤ HUYNH trả kết quả trong 24 giờ (SOP tư vấn, mục 5).
 ${partialSection}
 === THÔNG TIN HỌC VIÊN ===
 Họ tên: ${data.studentName}

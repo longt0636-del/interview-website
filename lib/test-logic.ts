@@ -15,6 +15,7 @@ export interface StudentRecord {
   workplace: string      // col S: Nơi học tập hoặc làm việc hiện tại
   learningFormat: string // col AD: Bạn thích học hình thức nào?
   testOverride: string   // cột "BÀI TEST CHỈ ĐỊNH" — thầy gõ tay để ép loại bài test
+  schedule: string       // câu "Lịch trong tuần của con…" (thêm 26/10/2026) — tìm theo TÊN cột, không theo vị trí
   rowIndex: number
 }
 

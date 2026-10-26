@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { saveTestResult, TestSubmission, findStudent } from '@/lib/google-sheets'
 import { sendResultToLong, EmailExtras } from '@/lib/email'
+import { oauthUserFromEnv } from '@/lib/google-lite'
 import {
   suggestClassFromScores,
   getClassSpecialNotice,
@@ -9,7 +10,12 @@ import {
   estimateGradeFromDOB,
 } from '@/lib/test-logic'
 
-const isResendPlaceholder = !(process.env.RESEND_API_KEY) || (process.env.RESEND_API_KEY || '').includes('placeholder')
+// 26/10/2026: trên Cloudflare không có khoá Resend — email gửi bằng Gmail của thầy (xem sendMail trong lib/email.ts).
+// Trước đây chỉ kiểm khoá Resend nên từ lúc chuyển sang Cloudflare email kết quả bị bỏ qua.
+function canSendMail(): boolean {
+  const resend = process.env.RESEND_API_KEY || ''
+  return (!!resend && !resend.includes('placeholder')) || !!oauthUserFromEnv()
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,6 +30,7 @@ export async function POST(req: NextRequest) {
     const dob         = studentRecord?.dob         || ''
     const workplace   = studentRecord?.workplace   || ''
     const learningFormat = studentRecord?.learningFormat || ''
+    const schedule    = studentRecord?.schedule    || ''
     const ieltsStudied = studentRecord?.ieltsStudied || ''
     const gradeEstimate = estimateGradeFromDOB(dob)
 
@@ -81,7 +88,7 @@ export async function POST(req: NextRequest) {
     await saveTestResult(submission)
 
     // Send email to Long (skip only when Resend key is a placeholder)
-    if (!isResendPlaceholder) {
+    if (canSendMail()) {
       const extras: EmailExtras = {
         examDate,
         targetBand,
@@ -91,6 +98,7 @@ export async function POST(req: NextRequest) {
         workplace,
         learningFormat,
         ieltsStudied,
+        schedule,
         gradeEstimate,
         specialNotice,
         missingParts: Array.isArray(body.missingParts) ? body.missingParts : [],
@@ -99,9 +107,14 @@ export async function POST(req: NextRequest) {
           task2: task2Analysis,
         },
       }
-      await sendResultToLong(submission, extras)
+      // Bài đã lưu vào sổ rồi — email lỗi thì chỉ ghi log, không báo lỗi cho học sinh.
+      try {
+        await sendResultToLong(submission, extras)
+      } catch (mailErr) {
+        console.error('submit-test: gửi email kết quả cho thầy thất bại:', mailErr)
+      }
     } else {
-      console.log('[DEV] Email skipped — add a real RESEND_API_KEY to .env.local to enable')
+      console.log('[DEV] Email skipped — chưa có RESEND_API_KEY hay khoá Google (GOOGLE_CLIENT_ID/SECRET/REFRESH_TOKEN)')
     }
 
     return NextResponse.json({
