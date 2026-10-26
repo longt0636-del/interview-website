@@ -1,5 +1,7 @@
 // Cấu hình chạy web tuyển sinh (bài test đầu vào) trên Cloudflare Workers (25/10/2026).
 // Build + deploy: `bash scripts/cf-docker-build.sh build deploy`. Khoá Google đặt bằng `wrangler secret`.
+// TỰ ĐƯA LÊN (26/10/2026): Workers Builds đã nối repo này — đẩy nhánh `main` là Cloudflare tự dựng (`node scripts/cf-build.mjs`)
+// rồi đưa lên (`npx opennextjs-cloudflare deploy`) sau 5–10 phút. Lỗi dựng: dash.cloudflare.com → Workers & Pages → worker này → Builds.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "website",
