@@ -181,8 +181,8 @@ export default function HomePage() {
               Bạn đang ở chặng nào?
             </h2>
             <p className="font-sans max-w-lg mx-auto text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.7 }}>
-              Ba khoá nối nhau thành một con đường từ mất gốc tới mục tiêu 6.0 đến 7.0+. Đọc thử mấy câu dưới đây,
-              thấy câu nào giống mình thì bấm vào chặng đó để xem học gì, học bao lâu và học phí.
+              Ba khoá nối nhau thành một con đường từ mất gốc tới mục tiêu 6.0 đến 7.0+. Rê chuột hoặc chạm
+              vào từng chặng để xem chặng đó có giống bạn không.
             </p>
           </div>
 

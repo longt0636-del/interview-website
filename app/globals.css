@@ -141,3 +141,17 @@ body {
   .step1-ring, .step1-shine, .step1-hand { display: none; }
   .step1-body, .step1-badge { animation: none; }
 }
+
+/* Vòng sáng mời bấm trên nút tên chặng của con đường lộ trình (tắt khi đã chọn một chặng) */
+.chip-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 2px solid var(--teal-light);
+  opacity: 0;
+  pointer-events: none;
+  animation: step1Ring 2.4s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip-ring { display: none; }
+}
