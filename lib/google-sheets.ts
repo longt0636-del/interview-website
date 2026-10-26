@@ -44,7 +44,7 @@ const OVERRIDE_HEADER = /chỉ\s*định/i
 
 // Câu "Lịch trong tuần của con…" thêm vào form 26/10/2026 — Google chèn cột mới trước các cột thầy tự thêm,
 // nên tìm theo tên cột chứ không cố định vị trí.
-const SCHEDULE_HEADER = /lịch\s*trong\s*tuần/i
+const SCHEDULE_HEADER = /lịch[^:]{0,12}trong\s*tuần/i   // "Lịch trong tuần…" hoặc "Lịch rảnh trong tuần…"
 
 function findScheduleCol(header: string[] | undefined): number {
   if (!header) return -1
