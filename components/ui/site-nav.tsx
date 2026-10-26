@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils';
 
 const links = [
   { href: '#courses', label: 'Khóa học' },
+  { href: '#trang-hoc', label: 'Trang học' },
   { href: '#testimonials', label: 'Học viên' },
-  { href: '#how', label: 'Quy trình' },
   { href: '#faq', label: 'FAQ' },
 ];
 

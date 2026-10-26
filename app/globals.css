@@ -62,3 +62,82 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Nút "Bước 1: Điền form khảo sát" (26/10/2026) ─────────────────────────
+   Vòng sáng lan ra, vệt sáng lướt qua, bàn tay chạm vào nút mỗi 3,2 giây để học
+   sinh để ý bước đầu tiên. Chỉ dùng transform + opacity. */
+.step1 {
+  transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.step1:active { transform: translateY(1px); }
+@media (hover: hover) and (pointer: fine) {
+  .step1:hover { transform: translateY(-2px); }
+  .step1:hover .step1-hand { opacity: 0; animation-play-state: paused; }
+}
+
+.step1-body {
+  animation: step1Press 3.2s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+}
+@keyframes step1Press {
+  0%, 52%, 64%, 100% { transform: scale(1); }
+  57%                { transform: scale(0.965); }
+}
+
+.step1-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  border: 2px solid var(--teal-light);
+  opacity: 0;
+  pointer-events: none;
+  animation: step1Ring 2.4s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+}
+.step1-ring--late { animation-delay: 1.2s; }
+@keyframes step1Ring {
+  0%   { transform: scale(1, 1);       opacity: 0.75; }
+  100% { transform: scale(1.07, 1.45); opacity: 0; }
+}
+
+.step1-shine {
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 38%;
+  background: linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.42) 50%, transparent 100%);
+  transform: translateX(-160%) skewX(-18deg);
+  animation: step1Shine 3.2s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+  pointer-events: none;
+}
+@keyframes step1Shine {
+  0%, 18%   { transform: translateX(-160%) skewX(-18deg); }
+  46%, 100% { transform: translateX(330%) skewX(-18deg); }
+}
+
+.step1-hand {
+  opacity: 0;
+  transform: translate(14px, 16px) rotate(-14deg);
+  animation: step1Hand 3.2s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+  pointer-events: none;
+  transition: opacity 150ms ease-out;
+}
+@keyframes step1Hand {
+  0%, 30%   { opacity: 0; transform: translate(14px, 16px) rotate(-14deg) scale(1); }
+  46%       { opacity: 1; transform: translate(0, 0) rotate(-14deg) scale(1); }
+  56%       { opacity: 1; transform: translate(-2px, -3px) rotate(-14deg) scale(0.86); }
+  64%       { opacity: 1; transform: translate(0, 0) rotate(-14deg) scale(1); }
+  82%, 100% { opacity: 0; transform: translate(12px, 14px) rotate(-14deg) scale(1); }
+}
+
+.step1-badge {
+  animation: step1Bob 2.4s ease-in-out infinite alternate;
+}
+@keyframes step1Bob {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-3px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step1-ring, .step1-shine, .step1-hand { display: none; }
+  .step1-body, .step1-badge { animation: none; }
+}

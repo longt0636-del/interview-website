@@ -32,12 +32,13 @@ const quotes = [
 ];
 
 const squarePhotos = [
-  { src: '/students/class-photo-1.jpg', alt: 'Học viên lớp IELTS LongIELTS trong giờ học' },
+  // Ảnh 1 và 6 thay bằng ảnh mới trên Facebook Thầy Long 8.5 IELTS Bảo Lộc (26/10/2026)
+  { src: '/students/lop-hoc-thang-9-2026.jpg', alt: 'Thầy Long chụp ảnh cùng học viên trên lớp, tháng 9/2026' },
   { src: '/students/class-photo-2.jpg', alt: 'Học viên LongIELTS luyện tập theo nhóm nhỏ' },
   { src: '/students/class-photo-3.jpg', alt: 'Cả lớp chụp ảnh kỷ niệm cùng thầy Long' },
   { src: '/students/class-photo-4.jpg', alt: 'Học viên LongIELTS nhận kết quả IELTS' },
   { src: '/students/class-photo-5.jpg', alt: 'Buổi học IELTS tại lớp của thầy Long' },
-  { src: '/students/class-photo-6.jpg', alt: 'Học viên LongIELTS cùng thầy Long sau buổi học' },
+  { src: '/students/stars-of-the-month.jpg', alt: 'Bảng Stars of the Month vinh danh học viên tiêu biểu trong tháng' },
 ];
 
 /* ── Quote card ────────────────────────────────────────────────────────────── */

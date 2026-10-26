@@ -1,97 +1,22 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { HeroAurora } from '@/components/ui/hero-aurora'
 import { HeroSpotlight } from '@/components/ui/hero-spotlight'
 import { SiteNav } from '@/components/ui/site-nav'
 import { TestimonialsSection } from '@/components/ui/testimonials-section'
-import { ButtonColorful } from '@/components/ui/button-colorful'
 import { GridPattern } from '@/components/ui/grid-pattern'
+import { StepOneCta } from '@/components/ui/step-one-cta'
+import { CourseRoadmap } from '@/components/ui/course-roadmap'
+import { LearningSiteShowcase } from '@/components/ui/learning-site-showcase'
 import {
   AcademicCapIcon,
   ArrowRightIcon,
   BookOpenIcon,
-  CalendarIcon,
-  ClipboardCheckIcon,
   MapPinIcon,
-  PencilSquareIcon,
-  SproutIcon,
-  TargetIcon,
-  TrendUpIcon,
-  UsersIcon,
 } from '@/components/ui/icons'
 import { cn } from '@/lib/utils'
 
 const GOOGLE_FORM_URL =
   'https://docs.google.com/forms/d/1sZbzR4G_j-YYpKKBcQ5bNwHhfQEH9a0k9GaJW4FCtjk/viewform'
-
-const courses = [
-  {
-    tag: 'IELTS NỀN TẢNG — Band 3–4',
-    Icon: SproutIcon,
-    name: 'Bắt đầu đúng cách, nền tảng vững chắc.',
-    desc: 'Dành cho học viên mất gốc hoặc cơ bản. Xây dựng lại Grammar, Vocabulary và 4 kỹ năng từ đầu.',
-    link: 'https://canva.link/d55b4f4fjkcghlc',
-    from: '0',
-    target: '4.0+',
-    tagline: 'Xây nền tảng vững chắc • Nâng band vượt bậc',
-    price: '1.200.000',
-    oldPrice: '1.400.000',
-    savings: '200K',
-    classSize: '8-10',
-  },
-  {
-    tag: 'IELTS CĂN BẢN — Band 4–5',
-    Icon: TrendUpIcon,
-    name: 'Nền tảng vững, band score không lo.',
-    desc: 'Dành cho học viên đã có căn bản, cần hệ thống hóa kiến thức và chiến lược làm bài chuẩn IELTS.',
-    link: 'https://canva.link/s6rchv6njq5zqzi',
-    from: '4.0',
-    target: '5.0+',
-    tagline: 'Hệ thống kiến thức • Chiến lược làm bài hiệu quả',
-    price: '1.200.000',
-    oldPrice: '1.400.000',
-    savings: '200K',
-    classSize: '8-10',
-  },
-  {
-    tag: 'ROAD TO IELTS — Band 5–6+',
-    Icon: TargetIcon,
-    name: 'Từ 5.0 lên 7.0 — chiến lược thực chiến.',
-    desc: 'Dành cho học viên Band 5.0+, cần chiến lược làm bài chuyên sâu và luyện đề thi thật.',
-    link: 'https://canva.link/iqi67oe336pt5h0',
-    from: '5.0',
-    target: '7.0+',
-    tagline: 'Chiến lược chuyên sâu • Luyện đề sát thực tế',
-    price: '1.500.000',
-    oldPrice: '1.800.000',
-    savings: '300K',
-    classSize: '8-10',
-  },
-]
-
-const steps = [
-  {
-    num: '01',
-    Icon: ClipboardCheckIcon,
-    title: 'Điền form khảo sát',
-    desc: 'Chia sẻ mục tiêu, deadline và trình độ hiện tại. Chỉ mất 5 phút.',
-    action: { label: 'Điền form ngay', href: GOOGLE_FORM_URL, external: true },
-  },
-  {
-    num: '02',
-    Icon: PencilSquareIcon,
-    title: 'Làm bài kiểm tra trình độ',
-    desc: 'Hệ thống tự giao bài test phù hợp. Làm theo tốc độ của bạn, nộp khi sẵn sàng.',
-    action: { label: 'Nhận bài test', href: '/get-test', external: false },
-  },
-  {
-    num: '03',
-    Icon: CalendarIcon,
-    title: 'Nhận lịch học thử',
-    desc: 'Thầy Long liên hệ trong 24h để phân tích kết quả và sắp xếp 2 buổi học thử miễn phí.',
-    action: null,
-  },
-]
 
 const faqs = [
   {
@@ -179,19 +104,16 @@ export default function HomePage() {
                   </span>
                 </span>
               </a>
-              <div className="flex flex-wrap gap-4 items-center mb-10">
-                <ButtonColorful
-                  label="Bước 1: Điền form khảo sát"
-                  href={GOOGLE_FORM_URL}
-                  external
-                />
+              {/* Bước 1 là nút chính (có hiệu ứng mời bấm); Bước 2 dành cho bạn đã điền form */}
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:items-center mb-10">
+                <StepOneCta href={GOOGLE_FORM_URL} className="w-full sm:w-auto" />
                 <Link
                   href="/get-test"
-                  className="font-sans font-semibold px-8 py-4 rounded-xl text-base inline-flex items-center gap-2 transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#5DCAA5]/60"
+                  className="font-sans font-semibold h-14 px-5 rounded-2xl text-[15px] inline-flex items-center justify-center gap-2 transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#EF9F27]/60"
                   style={{
-                    color: 'var(--navy)',
-                    background: 'var(--amber)',
-                    boxShadow: '0 8px 24px rgba(239,159,39,0.35)',
+                    color: 'var(--amber)',
+                    border: '2px solid rgba(239,159,39,0.75)',
+                    background: 'rgba(239,159,39,0.08)',
                   }}
                 >
                   Bước 2: Nhận bài test
@@ -256,231 +178,24 @@ export default function HomePage() {
               <span className="w-8 h-px" style={{ background: 'var(--teal)' }} />
             </div>
             <h2 className="font-serif font-bold text-4xl mb-4" style={{ color: 'var(--navy)' }}>
-              3 cấp độ phù hợp mọi học viên
+              Bạn đang ở chặng nào?
             </h2>
-            <p className="font-sans max-w-md mx-auto text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.7 }}>
-              Hệ thống tự xếp bạn vào đúng lớp sau bài kiểm tra.<br />
-              Bấm vào từng khóa để xem chi tiết lộ trình.
+            <p className="font-sans max-w-lg mx-auto text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.7 }}>
+              Ba khoá nối nhau thành một con đường từ mất gốc tới 7.0+. Đọc thử mấy câu dưới đây,
+              thấy câu nào giống mình thì bấm vào chặng đó để xem học gì, học bao lâu và học phí.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            {courses.map((c) => (
-              <a
-                key={c.name}
-                href={c.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex flex-col bg-white rounded-2xl hover:-translate-y-1 overflow-hidden"
-                style={{ boxShadow: '0 2px 12px rgba(11,61,92,0.08)', transition: 'transform 0.2s, box-shadow 0.2s' }}
-              >
-                {/* Top teal border */}
-                <div className="h-1.5" style={{ background: 'var(--teal)' }} />
+          <CourseRoadmap formUrl={GOOGLE_FORM_URL} />
 
-                <div className="p-6 flex flex-col flex-1">
-                  {/* Tag */}
-                  <p className="font-sans text-xs font-semibold uppercase tracking-widest mb-4"
-                     style={{ color: 'var(--teal)' }}>
-                    {c.tag}
-                  </p>
-
-                  {/* Icon + Title */}
-                  <div className="flex items-start gap-3 mb-3">
-                    <div
-                      className="shrink-0 w-12 h-12 rounded-full flex items-center justify-center"
-                      style={{ background: 'var(--mint)', color: 'var(--navy)' }}
-                    >
-                      <c.Icon className="w-6 h-6" />
-                    </div>
-                    <h3 className="font-serif font-bold text-2xl leading-snug"
-                        style={{ color: 'var(--navy)' }}>
-                      {c.name}
-                    </h3>
-                  </div>
-
-                  <p className="font-sans text-sm leading-relaxed mb-4 flex-1"
-                     style={{ color: 'var(--ink)', opacity: 0.75 }}>
-                    {c.desc}
-                  </p>
-
-                  {/* Target band block — from → to */}
-                  <div
-                    className="rounded-xl px-4 pt-3 pb-2.5 mb-4"
-                    style={{ background: '#147767' }}
-                  >
-                    <div className="font-sans text-xs font-semibold uppercase tracking-wider mb-3"
-                         style={{ color: 'rgba(255,255,255,0.5)' }}>
-                      Mục tiêu band
-                    </div>
-                    <div className="flex items-center gap-2 mb-2.5">
-                      {/* From badge */}
-                      <div
-                        className="font-mono font-bold text-base w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                        style={{ background: 'rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.7)' }}
-                      >
-                        {c.from}
-                      </div>
-                      {/* Growth arrow */}
-                      <div className="flex-1 flex items-center gap-1.5">
-                        <div
-                          className="flex-1 h-1.5 rounded-full"
-                          style={{ background: 'linear-gradient(to right, rgba(255,255,255,0.15), var(--amber))' }}
-                        />
-                        <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="var(--amber)" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                      </div>
-                      {/* Target */}
-                      <div className="font-mono font-bold text-2xl shrink-0" style={{ color: 'var(--amber)' }}>
-                        {c.target}
-                      </div>
-                      {/* Target marker */}
-                      <div
-                        className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center ml-1"
-                        style={{ background: 'rgba(239,159,39,0.18)', color: 'var(--amber)' }}
-                      >
-                        <TargetIcon className="w-4 h-4" strokeWidth={2} />
-                      </div>
-                    </div>
-                    <p className="font-sans text-xs mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                      {c.tagline}
-                    </p>
-
-                    {/* Divider */}
-                    <div className="h-px mb-3" style={{ background: 'rgba(255,255,255,0.14)' }} />
-
-                    {/* Tuition */}
-                    <div className="font-sans text-xs font-semibold uppercase tracking-wider mb-2"
-                         style={{ color: 'rgba(255,255,255,0.5)' }}>
-                      Học phí
-                    </div>
-                    <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="font-mono font-bold text-2xl" style={{ color: 'var(--amber)' }}>
-                        {c.price}đ
-                      </span>
-                      <span className="font-sans text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
-                        /tháng
-                      </span>
-                      <span className="font-mono text-sm line-through" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                        {c.oldPrice}đ
-                      </span>
-                      <span className="font-sans text-[11px] font-bold px-2 py-0.5 rounded-full"
-                            style={{ background: 'rgba(239,159,39,0.2)', color: 'var(--amber)' }}>
-                        -{c.savings}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Class size */}
-                  <div className="flex items-center justify-center gap-1.5 pt-4 border-t font-sans text-sm font-medium"
-                       style={{ borderColor: 'var(--mint)', color: 'var(--ink)' }}>
-                    <UsersIcon className="w-4 h-4 shrink-0" style={{ color: 'var(--teal)' }} />
-                    <span>{c.classSize} học viên / lớp</span>
-                  </div>
-
-                  <div className="mt-4 flex items-center gap-1.5 text-sm font-semibold font-sans"
-                       style={{ color: 'var(--teal)' }}>
-                    Xem chi tiết lộ trình
-                    <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
+          <p className="mt-10 text-center font-sans text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.7 }}>
+            Chưa chắc mình ở chặng nào? Cứ điền form, bài kiểm tra trình độ sẽ xếp bạn vào đúng lớp.
+          </p>
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── */}
-      <section id="how" className="py-24 px-6 relative overflow-hidden scroll-mt-20" style={{ background: 'var(--mint)' }}>
-        <GridPattern
-          width={36} height={36}
-          className={cn('fill-[#0B3D5C]/[0.04] stroke-[#0B3D5C]/[0.07]', '[mask-image:linear-gradient(to_bottom,white,transparent)]')}
-        />
-
-        <div className="max-w-5xl mx-auto relative z-10">
-          {/* Header */}
-          <div className="text-center mb-14">
-            <p className="font-sans text-xs font-semibold uppercase tracking-widest mb-3"
-               style={{ color: 'var(--teal)' }}>
-              Quy trình
-            </p>
-            <h2 className="font-serif font-bold text-4xl" style={{ color: 'var(--navy)' }}>
-              Bắt đầu trong 3 bước
-            </h2>
-          </div>
-
-          {/* Photos + Steps layout */}
-          <div className="relative">
-
-            {/* Left photo — spans steps 01 and 03 */}
-            <div className="hidden lg:block absolute left-[12px] top-0 w-56 pointer-events-none" style={{ zIndex: 0 }}>
-              <div className="relative rounded-2xl overflow-hidden" style={{ aspectRatio: '2/3', border: '2px solid rgba(29,158,117,0.22)', boxShadow: '0 8px 32px rgba(11,61,92,0.13)' }}>
-                <Image src="/students/long-outdoor.jpg" alt="Thầy Long" fill sizes="504px" className="object-cover" />
-              </div>
-              {/* Dot: step 01 level */}
-              <div className="absolute" style={{ right: '-6px', top: '46px', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--teal)', border: '2px solid var(--mint)' }} />
-              {/* Dot: step 03 level */}
-              <div className="absolute" style={{ right: '-6px', top: '258px', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--teal)', border: '2px solid var(--mint)' }} />
-            </div>
-
-            {/* Right photo — aligned with step 02 */}
-            <div className="hidden lg:block absolute right-[12px] w-56 pointer-events-none" style={{ top: '108px', zIndex: 0 }}>
-              <div className="relative rounded-2xl overflow-hidden" style={{ aspectRatio: '2/3', border: '2px solid rgba(29,158,117,0.22)', boxShadow: '0 8px 32px rgba(11,61,92,0.13)' }}>
-                <Image src="/students/long-forest.jpg" alt="Thầy Long" fill sizes="224px" className="object-cover" />
-              </div>
-              {/* Dot: step 02 level */}
-              <div className="absolute" style={{ left: '-6px', top: '46px', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--teal)', border: '2px solid var(--mint)' }} />
-            </div>
-
-            {/* Steps — centered with horizontal room for photos */}
-            <div className="lg:mx-[248px] space-y-4 relative z-10">
-              {steps.map((s, idx) => (
-                <div key={s.num} className="relative">
-
-                  {/* Dashed connecting line — steps 01 and 03 go LEFT */}
-                  {(idx === 0 || idx === 2) && (
-                    <div className="hidden lg:block absolute pointer-events-none" style={{ right: '100%', top: '50%', width: '40px', marginTop: '-1px', borderTop: '1.5px dashed #5DCAA5' }} />
-                  )}
-                  {/* Dashed connecting line — step 02 goes RIGHT with arrow */}
-                  {idx === 1 && (
-                    <div className="hidden lg:block absolute pointer-events-none" style={{ left: '100%', top: '50%', width: '40px', marginTop: '-1px', borderTop: '1.5px dashed #5DCAA5' }}>
-                      <svg style={{ position: 'absolute', right: '-2px', top: '-5px' }} width="7" height="10" viewBox="0 0 7 10" fill="none">
-                        <path d="M1 1l5 4-5 4" stroke="#5DCAA5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-                  )}
-
-                  <div className="bg-white rounded-2xl p-6 flex gap-5 items-center" style={{ boxShadow: '0 2px 12px rgba(11,61,92,0.08)' }}>
-                    {/* Step marker */}
-                    <div className="shrink-0 w-14 flex flex-col items-center gap-1.5">
-                      <div className="w-11 h-11 rounded-xl flex items-center justify-center"
-                           style={{ background: 'var(--mint)', color: 'var(--navy)' }}>
-                        <s.Icon className="w-5 h-5" />
-                      </div>
-                      <span className="font-mono font-bold text-sm" style={{ color: 'var(--amber)' }}>{s.num}</span>
-                    </div>
-                    {/* Content */}
-                    <div className="flex-1">
-                      <h3 className="font-sans font-bold text-lg mb-1" style={{ color: 'var(--navy)' }}>{s.title}</h3>
-                      <p className="font-sans text-sm leading-relaxed" style={{ color: 'var(--ink)', opacity: 0.75 }}>{s.desc}</p>
-                    </div>
-                    {/* Action */}
-                    {s.action && (
-                      <ButtonColorful
-                        label={s.action.label}
-                        href={s.action.href}
-                        external={s.action.external}
-                        className="shrink-0"
-                      />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-          </div>
-        </div>
-      </section>
+      {/* ── TRANG HỌC RIÊNG (thay mục Quy trình, 26/10/2026) ── */}
+      <LearningSiteShowcase formUrl={GOOGLE_FORM_URL} />
 
       {/* ── TESTIMONIALS ── */}
       <TestimonialsSection />
@@ -663,18 +378,14 @@ export default function HomePage() {
           <p className="font-sans mb-8" style={{ color: 'rgba(255,255,255,0.65)' }}>
             Kiểm tra trình độ miễn phí. Không cần cam kết ngay.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <ButtonColorful
-              label="Điền form khảo sát"
-              href={GOOGLE_FORM_URL}
-              external
-            />
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 items-center justify-center">
+            <StepOneCta href={GOOGLE_FORM_URL} />
             <Link
               href="/get-test"
-              className="font-sans font-semibold px-8 py-4 rounded-xl border text-base inline-flex items-center gap-2 transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#5DCAA5]/50"
+              className="font-sans font-semibold h-14 px-6 rounded-2xl border text-base inline-flex items-center gap-2 transition-transform duration-200 hover:-translate-y-0.5 active:translate-y-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#5DCAA5]/50"
               style={{ color: 'white', borderColor: 'rgba(255,255,255,0.35)' }}
             >
-              Đã điền form — Nhận bài test
+              Đã điền form? Nhận bài test
               <ArrowRightIcon className="w-4 h-4" />
             </Link>
           </div>

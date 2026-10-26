@@ -8,7 +8,8 @@
   "main": "cloudflare/worker.ts",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  // /media/* (video trang chủ) đi qua worker trước để có tua (Range) cho iPhone — xem cloudflare/worker.ts.
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS", "run_worker_first": ["/media/*"] },
   "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "website" }],
   "r2_buckets": [
     // File ghi âm Speaking của học viên — RIÊNG TƯ, chỉ mở qua /api/recording (không chung kho công khai với portal).

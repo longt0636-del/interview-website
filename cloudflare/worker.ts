@@ -4,6 +4,10 @@
 //   PUT /api/upload-recording?path=recordings/<tên>   học viên gửi file (tối đa 50 MB) — ghi thẳng luồng vào R2, không
 //                                                     giữ cả file trong bộ nhớ (thay cho cách tải thẳng lên Vercel Blob)
 //   GET /api/recording?path=recordings/<tên>          thầy nghe lại (link nằm trong thư báo + sổ) — có tua (Range)
+//   GET /media/<tên>                                  video giới thiệu trên trang chủ (public/media) — có tua (Range).
+//                                                     Kho file tĩnh của Workers luôn trả nguyên file (200) dù trình duyệt
+//                                                     xin một đoạn, mà Safari trên iPhone chỉ phát video khi nhận được 206.
+//                                                     wrangler.jsonc `run_worker_first` đưa /media/* qua đây trước (26/10/2026).
 //
 // Bản Vercel vẫn dùng app/api/upload-recording + app/api/recording như cũ.
 
@@ -21,6 +25,7 @@ interface R2Obj {
   writeHttpMetadata(h: Headers): void
 }
 interface Env {
+  ASSETS: { fetch(request: Request): Promise<Response> }
   RECORDINGS: {
     get(key: string, opts?: { range?: Headers; onlyIf?: Headers }): Promise<R2Obj | null>
     put(key: string, value: ReadableStream | ArrayBuffer, opts?: { httpMetadata?: { contentType?: string } }): Promise<unknown>
@@ -78,9 +83,55 @@ async function download(request: Request, env: Env, url: URL): Promise<Response>
   return new Response(request.method === 'HEAD' ? null : obj.body, { status: 200, headers: h })
 }
 
+// Cắt đúng đoạn trình duyệt xin từ file tĩnh (file ở public/media chỉ vài MB, đọc cả file vào bộ nhớ là ổn).
+async function serveMedia(request: Request, env: Env, url: URL): Promise<Response> {
+  const asset = await env.ASSETS.fetch(new Request(url.toString(), { method: 'GET' }))
+  if (!asset.ok) return asset
+  const etag = asset.headers.get('etag')
+  const h = new Headers()
+  h.set('content-type', asset.headers.get('content-type') || 'video/mp4')
+  h.set('accept-ranges', 'bytes')
+  h.set('cache-control', 'public, max-age=86400')
+  if (etag) {
+    h.set('etag', etag)
+    if (request.headers.get('if-none-match') === etag) return new Response(null, { status: 304, headers: h })
+  }
+  const body = await asset.arrayBuffer()
+  const size = body.byteLength
+  const m = /^bytes=(\d*)-(\d*)$/.exec((request.headers.get('range') || '').trim())
+  if (m && (m[1] || m[2])) {
+    let start: number
+    let end: number
+    if (m[1]) {
+      start = Number(m[1])
+      end = m[2] ? Math.min(Number(m[2]), size - 1) : size - 1
+    } else {
+      start = Math.max(0, size - Number(m[2]))
+      end = size - 1
+    }
+    if (start >= size || start > end) {
+      h.set('content-range', `bytes */${size}`)
+      return new Response(null, { status: 416, headers: h })
+    }
+    h.set('content-range', `bytes ${start}-${end}/${size}`)
+    h.set('content-length', String(end - start + 1))
+    return new Response(request.method === 'HEAD' ? null : body.slice(start, end + 1), { status: 206, headers: h })
+  }
+  h.set('content-length', String(size))
+  return new Response(request.method === 'HEAD' ? null : body, { status: 200, headers: h })
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: unknown): Promise<Response> {
     const url = new URL(request.url)
+    if (url.pathname.startsWith('/media/') && (request.method === 'GET' || request.method === 'HEAD')) {
+      try {
+        return await serveMedia(request, env, url)
+      } catch (e) {
+        console.error('[media]', e instanceof Error ? e.message : e)
+        return env.ASSETS.fetch(request)
+      }
+    }
     try {
       if (url.pathname === '/api/upload-recording' && request.method === 'PUT') return await upload(request, env, url)
       if (url.pathname === '/api/recording' && (request.method === 'GET' || request.method === 'HEAD')) return await download(request, env, url)
