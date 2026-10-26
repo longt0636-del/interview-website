@@ -32,11 +32,25 @@ export function PromiseResubmit({ raised = false }: PromiseResubmitProps) {
     if (info) setStudentName(info.studentName || '')
   }, [])
 
+  // 26/10/2026: trước đây hộp lớn tự bật sau 10 giây và che nút "Nộp bài" (Test 1: em làm bài Oxford ở tab khác,
+  // quay lại điền điểm là bị hộp chắn). Nay chỉ tự bật khi em CHƯA đụng vào trang sau 45 giây (đang lưỡng lự);
+  // em đã bấm/gõ/cuộn thì chỉ hiện nút lịch nhỏ ở góc, bấm vào mới mở hộp.
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setPhase((current) => (current === 'hidden' ? 'modal' : current))
+    let interacted = false
+    const onInteract = () => { interacted = true }
+    const events = ['pointerdown', 'keydown', 'input', 'wheel'] as const
+    events.forEach((ev) => document.addEventListener(ev, onInteract, { capture: true, passive: true }))
+    const showIcon = setTimeout(() => {
+      if (interacted) setPhase((current) => (current === 'hidden' ? 'icon' : current))
     }, 10000)
-    return () => clearTimeout(timer)
+    const showModal = setTimeout(() => {
+      setPhase((current) => (current === 'hidden' ? (interacted ? 'icon' : 'modal') : current))
+    }, 45000)
+    return () => {
+      clearTimeout(showIcon)
+      clearTimeout(showModal)
+      events.forEach((ev) => document.removeEventListener(ev, onInteract, { capture: true }))
+    }
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
