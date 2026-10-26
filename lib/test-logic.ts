@@ -208,8 +208,8 @@ export function getLevelFeedback(
   if (testLevel === 3) {
     const r = parseRawScore(submission.readingScore   || '')
     const l = parseRawScore(submission.listeningScore || '')
-    const rBand = r > 10 ? (r / 40) * 9 : r
-    const lBand = l > 10 ? (l / 40) * 9 : l
+    const rBand = test3Band(submission.readingScore || '')
+    const lBand = test3Band(submission.listeningScore || '')
     const avg = r > 0 && l > 0 ? (rBand + lBand) / 2 : Math.max(rBand, lBand)
     if (avg >= 7.0) return { headline: 'Trình độ giỏi', detail: 'Kỹ năng IELTS của bạn rất vững. Cần luyện sâu Writing và Speaking để chốt band mục tiêu.' }
     if (avg >= 5.5) return { headline: 'Trình độ khá', detail: 'Bạn có nền tảng IELTS tốt. Cần tinh chỉnh kỹ năng và luyện đề thật để nâng band đúng mục tiêu.' }
@@ -248,6 +248,16 @@ export function suggestClass(testLevel: TestLevel, studentLevel: string): string
     return 'IELTS Căn Bản (Trình độ 4-5)'
   }
   return 'Complete IELTS (Trình độ 5-6+)'
+}
+
+// Điểm Test 3 → band. Trang Test 3 luôn gửi "số câu đúng/40" — KHÔNG đoán theo độ lớn của số: trước 26/10/2026 mọi điểm
+// ≤ 10 bị coi là band, nên em 8/40 Reading + 5/40 Listening được xếp "Trình độ khá", gợi ý Complete IELTS 5-6+.
+// Chỉ chuỗi không có "/" (điểm thầy nhập tay kiểu cũ) mới còn đoán: ≤ 10 là band, > 10 là số câu /40.
+function test3Band(scoreStr: string): number {
+  const m = scoreStr.replace(',', '.').match(/^\s*(\d+\.?\d*)\s*\/\s*(\d+)/)
+  if (m) return (parseFloat(m[1]) / (parseFloat(m[2]) || 40)) * 9
+  const n = parseRawScore(scoreStr)
+  return n > 10 ? (n / 40) * 9 : n
 }
 
 // Parse a score string like "9/13", "8,5", "8.5", or "8" → numeric value
@@ -321,9 +331,8 @@ export function suggestClassFromScores(
   if (submission.testLevel === 3) {
     const r = parseRawScore(submission.readingScore  || '')
     const l = parseRawScore(submission.listeningScore || '')
-    // Normalize: scores > 10 are raw /40; ≤ 10 are band scores
-    const rBand = r > 10 ? (r / 40) * 9 : r
-    const lBand = l > 10 ? (l / 40) * 9 : l
+    const rBand = test3Band(submission.readingScore || '')
+    const lBand = test3Band(submission.listeningScore || '')
     const avg = r > 0 && l > 0 ? (rBand + lBand) / 2 : Math.max(rBand, lBand)
     if (avg < 5.0) return 'IELTS Căn Bản (Trình độ 4-5)'
     return 'Complete IELTS (Trình độ 5-6+)'

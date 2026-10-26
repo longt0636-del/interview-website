@@ -165,6 +165,12 @@ export function ReadingListeningExercise({
     onClose()
   }
 
+  // Số câu THẬT của phần này (26/10/2026): Test 3 Reading P2 bắt đầu từ câu 14, Listening P2 từ câu 11… — thanh dưới đáy
+  // từng hiện 1..N nên câu đã làm không xanh và bấm số không nhảy tới câu.
+  const questionNumbers = [
+    ...new Set(section.groups.flatMap((g) => (g.kind === 'mcqMulti' ? g.numbers : Object.keys(g.answers).map(Number)))),
+  ].sort((a, b) => a - b)
+
   function scrollToQuestion(num: number) {
     setMobileTab('questions')
     requestAnimationFrame(() => {
@@ -372,8 +378,9 @@ export function ReadingListeningExercise({
       {/* Bottom nav */}
       <div className="border-t px-5 py-3.5 shrink-0" style={{ background: '#fff', borderColor: '#E5E7EB' }}>
         <div className="flex items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-2 flex-1 overflow-x-auto">
-            {Array.from({ length: section.totalQuestions }, (_, i) => i + 1).map((num) => {
+          {/* Một hàng cuộn ngang trên điện thoại (26/10/2026): xuống 4 hàng thì nút "Hẹn ngày" nổi đè lên nút Hoàn thành. */}
+          <div className="flex flex-nowrap md:flex-wrap gap-2 flex-1 overflow-x-auto">
+            {questionNumbers.map((num) => {
               const answered = !!answers[num]
               return (
                 <button

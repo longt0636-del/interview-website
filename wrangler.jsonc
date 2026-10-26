@@ -7,6 +7,10 @@
   "name": "website",
   "main": "cloudflare/worker.ts",
   "compatibility_date": "2026-10-01",
+  // Link gọn gửi phụ huynh/học viên mới (Long 26/10/2026): test.longielts.website — tên miền chính đã ở Cloudflare (xem
+  // wrangler.jsonc của portal). workers_dev GIỮ true: link website.longielts.workers.dev đã gửi vẫn chạy.
+  "workers_dev": true,
+  "routes": [{ "pattern": "test.longielts.website", "custom_domain": true }],
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   // /media/* (video trang chủ) + /audio/* (bài nghe, 26/10/2026) đi qua worker trước để có tua (Range) cho iPhone — xem cloudflare/worker.ts.
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS", "run_worker_first": ["/media/*", "/audio/*"] },

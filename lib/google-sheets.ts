@@ -11,14 +11,22 @@ function getSheets() {
   return sheetsClient(oauthUserFromEnv() ?? serviceAccountFromEnv())
 }
 
-// Row (1-based) in "Khảo sát test" whose column-B name loosely matches; header row skipped.
+// Row (1-based) in "Khảo sát test" whose column-B name matches; header row skipped. Không khớp → null (ghi dòng mới).
+// 26/10/2026: tên TRỐNG (mở thẳng /test/N, không qua bước nhập tên) từng khớp DÒNG ĐẦU TIÊN (`includes('')` luôn đúng) và
+// ghi đè điểm của một học viên thật; tên chứa nhau ("Nguyễn An"/"Nguyễn Anh") ghi đè nhầm người. Nay: trùng khít trước;
+// chỉ khớp lỏng khi đúng MỘT dòng khớp (thầy gõ tên ngắn hơn em) — nhiều dòng khớp lỏng thì ghi dòng mới cho chắc.
 function findNameRow(nameRows: string[][], name: string): number | null {
-  const norm = name.trim().toLowerCase()
+  const key = (s: string) => s.normalize('NFC').replace(/\s+/g, ' ').trim().toLowerCase()
+  const norm = key(name)
+  if (!norm) return null
+  const loose: number[] = []
   for (let i = 1; i < nameRows.length; i++) {
-    const cell = (nameRows[i]?.[0] || '').trim().toLowerCase()
-    if (cell && (cell.includes(norm) || norm.includes(cell))) return i + 1
+    const cell = key(nameRows[i]?.[0] || '')
+    if (!cell) continue
+    if (cell === norm) return i + 1
+    if (cell.includes(norm) || norm.includes(cell)) loose.push(i + 1)
   }
-  return null
+  return loose.length === 1 ? loose[0] : null
 }
 
 // 0-based column indices in "Thông tin" tab (verified from live sheet: A=0, G=6, N=13, X=23 …)
