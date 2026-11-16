@@ -354,3 +354,107 @@ body:has(.bro-print) {
 .bro-print .flip-b {
   display: none;
 }
+
+/* Trang 4: trang học riêng */
+.bro-print .web-lead {
+  font-size: 22px;
+  max-width: 30ch;
+}
+.bro-print .p-web {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 30px;
+  align-items: center;
+  margin-top: 26px;
+}
+.bro-print .p-web .phone {
+  width: 250px;
+}
+.bro-print .p-web .web-item {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: var(--r);
+  border: 1px solid var(--line);
+  cursor: default;
+}
+.bro-print .p-web .web-item-title {
+  font-size: 16px;
+}
+.bro-print .p-web .web-item-text {
+  font-size: 13px;
+}
+.bro-print .p-web-url {
+  margin-top: 26px;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--amber);
+}
+
+/* Trang 5: kiểm tra + báo cáo, xếp dọc */
+.bro-print .usp--p {
+  margin-top: 18px;
+}
+.bro-print .usp--report.usp--p {
+  grid-template-columns: 0.8fr 1.2fr;
+  align-items: center;
+  gap: 22px;
+}
+
+/* Trang 3: 2 hoặc 4 buổi */
+.bro-print .days--n2 .day {
+  padding: 34px 26px;
+}
+.bro-print .days--n2 .art {
+  min-height: 240px;
+}
+.bro-print .days--n4 {
+  gap: 14px;
+}
+.bro-print .days--n4 .day {
+  padding: 16px 22px;
+}
+.bro-print .days--n4 .day-title {
+  font-size: 26px;
+}
+.bro-print .days--n4 .art {
+  min-height: 150px;
+}
+
+/* Khoá không có cô đứng lớp (Road to IELTS): ảnh thầy to hơn cho đầy trang 2 */
+.bro-print .pg--solo .p-photo img {
+  height: 300px;
+}
+.bro-print .pg--solo .p-peak {
+  grid-template-columns: 1fr 330px;
+}
+/* 4 buổi trên một trang A4 */
+.bro-print .days--n4 .day {
+  padding: 12px 20px;
+  gap: 16px;
+}
+.bro-print .days--n4 .day-title {
+  font-size: 24px;
+  margin-top: 2px;
+}
+.bro-print .days--n4 .day-sub {
+  margin-top: 4px;
+  font-size: 13.5px;
+}
+.bro-print .days--n4 .art {
+  min-height: 0;
+  padding: 10px;
+  gap: 12px;
+}
+.bro-print .days--n4 .essay span {
+  padding: 3px 8px;
+  font-size: 11px;
+}
+.bro-print .days--n4 .chart {
+  width: 170px;
+  height: 85px;
+}
+.bro-print .days--n4 .flip {
+  width: 150px;
+  height: 70px;
+}

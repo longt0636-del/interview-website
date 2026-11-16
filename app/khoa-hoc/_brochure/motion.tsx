@@ -14,10 +14,48 @@ export function BrochureMotion() {
     if (!root) return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const videos = Array.from(root.querySelectorAll<HTMLVideoElement>('video[data-autoplay]'))
+
+    // 0. Chương "Trang học riêng": bấm một tính năng → video tua tới đúng cảnh; video chạy tới cảnh nào thì tính năng đó sáng lên.
+    //    Cảnh của video trang học (24 giây): sửa bài viết 0-3s (lặp lại từ 20.3s), bài nói thành chữ 6.3-10.2s,
+    //    nộp xong biết câu sai 10.3-14.2s, ôn từ vựng 14.3-18s. Chạy cả khi máy bật giảm chuyển động (người dùng tự bấm).
+    const web = root.querySelector<HTMLElement>('[data-web]')
+    const webVideo = web?.querySelector<HTMLVideoElement>('video') ?? null
+    const webItems = web ? Array.from(web.querySelectorAll<HTMLButtonElement>('[data-scene]')) : []
+    const RANGES: [number, number][] = [
+      [0, 3.2],
+      [6.3, 10.2],
+      [10.3, 14.2],
+      [14.3, 18],
+    ]
+    const onWebTime = () => {
+      if (!webVideo) return
+      const t = webVideo.currentTime
+      for (const it of webItems) {
+        const s = parseFloat(it.dataset.scene || '0')
+        const r = RANGES.find(([a]) => Math.abs(a - s) < 0.5) ?? [s, s + 3.5]
+        const on = (t >= r[0] && t < r[1]) || (s < 1 && t >= 20.3)
+        it.classList.toggle('is-active', on)
+        it.setAttribute('aria-pressed', on ? 'true' : 'false')
+      }
+    }
+    const onWebClick = (e: Event) => {
+      const it = (e.currentTarget as HTMLElement) || null
+      if (!webVideo || !it) return
+      webVideo.preload = 'auto'
+      webVideo.currentTime = parseFloat(it.dataset.scene || '0')
+      webVideo.play().catch(() => (webVideo.controls = true))
+      onWebTime()
+    }
+    webItems.forEach((it) => it.addEventListener('click', onWebClick))
+    webVideo?.addEventListener('timeupdate', onWebTime)
+
     if (reduce) {
       // giữ trạng thái đầy đủ, không ẩn gì, không trôi gì; video không tự chạy, có nút bấm
       videos.forEach((v) => (v.controls = true))
-      return
+      return () => {
+        webItems.forEach((it) => it.removeEventListener('click', onWebClick))
+        webVideo?.removeEventListener('timeupdate', onWebTime)
+      }
     }
     root.classList.add('motion-ready')
 
@@ -146,6 +184,8 @@ export function BrochureMotion() {
       if (raf) cancelAnimationFrame(raf)
       io.disconnect()
       markIo.disconnect()
+      webItems.forEach((it) => it.removeEventListener('click', onWebClick))
+      webVideo?.removeEventListener('timeupdate', onWebTime)
       vio.disconnect()
     }
   }, [])

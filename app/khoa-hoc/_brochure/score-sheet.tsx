@@ -1,4 +1,4 @@
-import { founder } from '@/lib/brochure-can-ban'
+import { founder } from '@/lib/brochures/shared'
 
 // Phiếu điểm IELTS của thầy Long dựng bằng chữ thật (không phải ảnh chụp, không có số báo danh / ngày sinh).
 // Trên web: mỗi ô điểm được "đóng dấu" khi cuộn tới ngưỡng data-stamp-at, rồi nét bút cam khoanh ô Overall (motion.tsx).

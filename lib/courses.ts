@@ -41,10 +41,11 @@ export const courses: Course[] = [
       'Biết từng từ, ghép thành câu thì bí.',
       'Ngại nói vì sợ phát âm sai.',
       'Ngữ pháp học trên trường xong là quên.',
-      'Đang học cấp 2, muốn bắt đầu IELTS sớm.',
+      'Đang học lớp 8, 9, muốn bắt đầu IELTS sớm.',
     ],
+    // 16/11/2026 Long chốt cho brochure: "lớp 8, 9 hoặc mất gốc" (SOP chỉ nhận học sinh từ lớp 8).
     forWho:
-      'Bạn mất gốc hoặc đang quanh 3.0 đến 4.0, và các bạn THCS (lớp 6 đến 9) có nền khá, muốn học IELTS sớm để đi đường dài thay vì luyện cấp tốc năm lớp 12.',
+      'Học sinh lớp 8, 9 hoặc mất gốc tiếng Anh, đang quanh 3.0 đến 4.0, muốn học IELTS sớm để đi đường dài thay vì luyện cấp tốc năm lớp 12.',
     learn: [
       'Từ vựng theo chủ đề quen thuộc và ngữ pháp căn bản',
       'Phát âm chuẩn để tự tin nói những câu đầu tiên',
@@ -52,16 +53,19 @@ export const courses: Course[] = [
     ],
     outcomes: ['Nói được 1 đến 2 phút về chủ đề quen thuộc', 'Viết được đoạn ngắn đúng cấu trúc', 'Đủ nền để lên IELTS Căn Bản'],
     facts: [
-      { label: 'Thời gian', value: '6 tháng, 2 kỳ' },
+      { label: 'Thời gian', value: '6 tháng, 47 buổi' },
       { label: 'Lịch học', value: '2 buổi/tuần, 90 phút/buổi' },
-      { label: 'Giáo viên', value: 'Cô Hồ Xuân Tiên và thầy Long' },
+      { label: 'Chương trình', value: 'Thầy Long (IELTS 8.5)' },
+      { label: 'Giáo viên', value: 'Cô Tiên, cô Thư' },
       { label: 'Sĩ số', value: 'Tối đa 10 bạn' },
     ],
     price: '1.200.000',
     oldPrice: '1.400.000',
     savings: '200K',
-    brochure: 'https://canva.link/d55b4f4fjkcghlc',
-    brochureEmbed: 'https://www.canva.com/design/DAHK0SMiSBA/aw7SoPlMBOTTXIOLPik1aQ/view?embed',
+    // Brochure mới trên web (16/11/2026) thay Canva cũ canva.link/d55b4f4fjkcghlc (DAHK0SMiSBA).
+    brochure: '/khoa-hoc/nen-tang',
+    brochureEmbed: '',
+    brochurePage: '/khoa-hoc/nen-tang',
   },
   {
     id: 'can-ban',
@@ -106,7 +110,7 @@ export const courses: Course[] = [
     name: 'Road to IELTS',
     short: 'Road to IELTS',
     from: '5.0',
-    // Brochure cam kết tối thiểu 6.0 sau 1-1,5 năm (Long chốt ghi 6.0-7.0+, 26/10/2026)
+    // Mục tiêu 6.0-7.0+ (Long 26/10/2026). Từ 16/11/2026 KHÔNG hứa band (theo quyết định 15/10 "không hứa band").
     to: '6.0-7.0+',
     tagline: 'Chiến lược làm bài và luyện đề như thi thật.',
     signs: [
@@ -122,9 +126,9 @@ export const courses: Course[] = [
       'Writing Task 1, Task 2 và Speaking theo khung rõ ràng',
       'Luyện đề thật theo giờ trước khi đi thi',
     ],
-    outcomes: ['Tối thiểu 6.0 sau 1 đến 1,5 năm học đều', 'Sẵn sàng đăng ký thi thật'],
+    outcomes: ['Mục tiêu 6.0 đến 7.0+ sau khoảng 1,5 năm học đều', 'Sẵn sàng đăng ký thi thật'],
     facts: [
-      { label: 'Thời gian', value: 'Khoảng 1,5 năm' },
+      { label: 'Thời gian', value: 'Khoảng 1,5 năm, 138 buổi' },
       { label: 'Lịch học', value: '2 buổi/tuần' },
       { label: 'Giáo viên', value: 'Thầy Long (IELTS 8.5)' },
       { label: 'Sĩ số', value: 'Tối đa 10 bạn' },
@@ -132,7 +136,9 @@ export const courses: Course[] = [
     price: '1.500.000',
     oldPrice: '1.750.000',
     savings: '250K',
-    brochure: 'https://canva.link/iqi67oe336pt5h0',
-    brochureEmbed: 'https://www.canva.com/design/DAG2BtdxhVM/0Oeyx5j1guSY4_taxPx5Jw/view?embed',
+    // Brochure mới trên web (16/11/2026) thay Canva cũ canva.link/iqi67oe336pt5h0 (DAG2BtdxhVM).
+    brochure: '/khoa-hoc/road-to-ielts',
+    brochureEmbed: '',
+    brochurePage: '/khoa-hoc/road-to-ielts',
   },
 ]
