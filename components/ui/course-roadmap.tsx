@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { AnimatePresence, motion, useInView, useReducedMotion } from 'framer-motion';
 import { courses, type Course } from '@/lib/courses';
 import { StepOneCta } from '@/components/ui/step-one-cta';
@@ -550,21 +551,33 @@ function CourseCard({
 
                 <StepOneCta href={formUrl} compact className="w-full" />
 
-                <button
-                  type="button"
-                  onClick={() => setBrochureOpen((v) => !v)}
-                  aria-expanded={brochureOpen}
-                  aria-controls={`brochure-${course.id}`}
-                  className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl px-4 font-sans text-sm font-bold transition-transform duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D9E75]/45"
-                  style={{ background: 'var(--mint)', color: 'var(--navy)', border: '1px solid rgba(29,158,117,0.3)' }}
-                >
-                  <BookIcon />
-                  {brochureOpen ? 'Ẩn brochure' : 'Xem brochure ngay tại đây'}
-                </button>
+                {course.brochurePage ? (
+                  // Brochure là trang riêng trên web (16/11/2026, khoá Căn Bản): mở trang, không nhúng Canva.
+                  <Link
+                    href={course.brochurePage}
+                    className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl px-4 font-sans text-sm font-bold transition-transform duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D9E75]/45"
+                    style={{ background: 'var(--mint)', color: 'var(--navy)', border: '1px solid rgba(29,158,117,0.3)' }}
+                  >
+                    <BookIcon />
+                    Xem brochure khoá học
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setBrochureOpen((v) => !v)}
+                    aria-expanded={brochureOpen}
+                    aria-controls={`brochure-${course.id}`}
+                    className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl px-4 font-sans text-sm font-bold transition-transform duration-150 ease-out active:scale-[0.98] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D9E75]/45"
+                    style={{ background: 'var(--mint)', color: 'var(--navy)', border: '1px solid rgba(29,158,117,0.3)' }}
+                  >
+                    <BookIcon />
+                    {brochureOpen ? 'Ẩn brochure' : 'Xem brochure ngay tại đây'}
+                  </button>
+                )}
               </aside>
             </div>
 
-            {brochureOpen ? (
+            {brochureOpen && !course.brochurePage ? (
               <div id={`brochure-${course.id}`} className="mt-7">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <Heading>Brochure {course.name}</Heading>

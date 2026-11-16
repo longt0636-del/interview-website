@@ -25,6 +25,8 @@ export type Course = {
   brochure: string
   /** Bản nhúng của cùng brochure, xem ngay trong trang */
   brochureEmbed: string
+  /** Brochure là một trang riêng trên web (thay Canva). Có thì nút mở trang này thay vì nhúng Canva */
+  brochurePage?: string
 }
 
 export const courses: Course[] = [
@@ -83,16 +85,21 @@ export const courses: Course[] = [
     ],
     outcomes: ['Nói và viết được câu hoàn chỉnh', 'Quen dạng bài IELTS ở mức căn bản', 'Sẵn sàng lên Road to IELTS'],
     facts: [
-      { label: 'Thời gian', value: '10 đến 12 tháng, 2 kỳ' },
+      // 16/11/2026: theo Master Plan 3 buổi/unit (Kỳ 1: 40 buổi, Kỳ 2: 9 buổi). Thầy Long soạn chương trình,
+      // cô Thư (CB3) + cô Châu (CB4) đứng lớp. Long chốt cách ghi này cho brochure mới.
+      { label: 'Thời gian', value: 'Khoảng 6 tháng, 49 buổi' },
       { label: 'Lịch học', value: '2 buổi/tuần' },
-      { label: 'Giáo viên', value: 'Thầy Long' },
+      { label: 'Chương trình', value: 'Thầy Long (IELTS 8.5)' },
+      { label: 'Giáo viên', value: 'Cô Thư, cô Châu (IELTS 7.5)' },
       { label: 'Sĩ số', value: 'Tối đa 10 bạn' },
     ],
     price: '1.200.000',
     oldPrice: '1.400.000',
     savings: '200K',
-    brochure: 'https://canva.link/s6rchv6njq5zqzi',
-    brochureEmbed: 'https://www.canva.com/design/DAG2BsuxsLU/CskomUiv8uSpYUgukJYO6g/view?embed',
+    // Brochure mới trên web (16/11/2026) thay Canva cũ canva.link/s6rchv6njq5zqzi (DAG2BsuxsLU, nội dung 25 buổi đã cũ).
+    brochure: '/khoa-hoc/can-ban',
+    brochureEmbed: '',
+    brochurePage: '/khoa-hoc/can-ban',
   },
   {
     id: 'road-to-ielts',
