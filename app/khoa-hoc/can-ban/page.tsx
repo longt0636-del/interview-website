@@ -1,7 +1,7 @@
-// Brochure khoá IELTS Căn Bản 4.0-5.0 (Long 16/11/2026) — thay brochure Canva canva.link/s6rchv6njq5zqzi.
-// Kiểu "cuốn tài liệu in" chia chương: nền giấy kem ô ly, cam + navy kiểu Vox, mỗi chương một nền, số chương ở lề.
-// Điểm nhấn: phiếu điểm IELTS 8.5 của thầy Long tự đóng dấu khi cuộn (score-sheet.tsx + motion.tsx).
-// Nội dung nằm ở lib/brochure-can-ban.ts (chung với bản in /khoa-hoc/can-ban/in → PDF ở public/brochure/).
+// Brochure khoá IELTS Căn Bản 4.0-5.0 — thay brochure Canva canva.link/s6rchv6njq5zqzi.
+// Bản 2 (Long 16/11/2026): theo thuyết noticing, ít chữ, chỉ tô cam đúng thông tin chính (nét bút dạ quang quét khi cuộn tới).
+// Kiểu "cuốn tài liệu in" chia chương, màu LongIELTS Vox. Điểm nhấn: phiếu điểm IELTS 8.5 tự đóng dấu (score-sheet.tsx + motion.tsx).
+// Nội dung ở lib/brochure-can-ban.ts (chung với bản in /khoa-hoc/can-ban/in → PDF ở public/brochure/).
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -14,34 +14,53 @@ import {
   UPDATED,
   ZALO_DISPLAY,
   ZALO_URL,
-  enrol,
   forWho,
   founder,
   hero,
-  method,
-  outcomes,
-  parents,
+  lan,
   pricing,
-  roadmap,
-  rules,
-  stages,
-  testimonial,
+  sessions,
+  splitMarks,
+  teachers,
+  teachersNote,
+  usps,
 } from '@/lib/brochure-can-ban'
+import { testimonialVideos } from '@/lib/testimonial-videos'
 import { ScoreSheet } from './score-sheet'
 import { BrochureMotion } from './motion'
+import { DayArt, ReportCard, TeacherCard, TestTiles, Timeline } from './parts'
 
 export const metadata: Metadata = {
   // Ảnh xem trước khi gửi link Zalo/Facebook = opengraph-image.png cùng thư mục; cần địa chỉ gốc để ra link tuyệt đối.
   metadataBase: new URL('https://test.longielts.website'),
   alternates: { canonical: '/khoa-hoc/can-ban' },
   title: 'IELTS Căn Bản 4.0-5.0 · Brochure khoá học · LongIELTS',
-  description: hero.sub + ' 49 buổi, khoảng 6 tháng, học thử 2 buổi miễn phí.',
+  description: hero.sub + ' Khoảng 6 tháng, 49 buổi, học thử 2 buổi miễn phí.',
   openGraph: {
     title: 'Brochure khoá IELTS Căn Bản 4.0-5.0 · LongIELTS',
-    description: 'Lộ trình 49 buổi, mỗi unit 3 buổi, học phí và cách đăng ký học thử.',
+    description: 'Lớp 10, 11 còn 1-2 năm chuẩn bị IELTS. Học khoảng 6 tháng, mỗi unit 3 buổi, học thử 2 buổi miễn phí.',
     type: 'website',
     locale: 'vi_VN',
   },
+}
+
+const LAN_SRC = testimonialVideos.find((v) => v.id === 'ngoc-lan')?.src ?? ''
+
+/** Câu có [[cụm tô]]: cụm tô là nét bút dạ quang quét qua khi cuộn tới (thuyết noticing). */
+function Marked({ text }: { text: string }) {
+  return (
+    <>
+      {splitMarks(text).map((p, i) =>
+        p.mark ? (
+          <mark key={i} className="nb" data-mark>
+            {p.t}
+          </mark>
+        ) : (
+          <span key={i}>{p.t}</span>
+        ),
+      )}
+    </>
+  )
 }
 
 function DownloadIcon() {
@@ -60,15 +79,11 @@ function ChatIcon() {
   )
 }
 
-function ChapterHead({ num, title, children }: { num: string; title: string; children: React.ReactNode }) {
+function Title({ children, id }: { children: React.ReactNode; id?: string }) {
   return (
-    <header className="ch-head" data-in>
-      <p className="ch-num">
-        Chương {num}
-        <span className="sr-only">: {title}</span>
-      </p>
-      <h2 className="ch-title">{children}</h2>
-    </header>
+    <h2 className="ch-title" id={id} data-in>
+      {children}
+    </h2>
   )
 }
 
@@ -135,42 +150,24 @@ export default function BrochureCanBanPage() {
         </div>
       </section>
 
-      {/* ── 1. DÀNH CHO AI ── */}
-      <section className="ch ground-sheet ch--quiet-end" data-chapter="Khoá này dành cho ai" data-num="1" aria-label="Chương 1: Khoá này dành cho ai">
+      {/* ── 1. DÀNH CHO AI: hai câu, ba cụm tô, một đường thời gian làm bằng chứng ── */}
+      <section className="ch ground-sheet ch--quiet-end" data-chapter={forWho.title} data-num="1" aria-labelledby="c1">
         <div className="wrap">
-          <ChapterHead num="1" title="Khoá này dành cho ai">
-            Khoá này <span className="hl">dành cho ai</span>
-          </ChapterHead>
-          <div className="who">
-            <div className="who-main" data-in>
-              <p className="lead">{forWho.lead}</p>
-              <dl className="facts">
-                {forWho.facts.map((f) => (
-                  <div key={f.k}>
-                    <dt>{f.k}</dt>
-                    <dd>{f.v}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-            <div className="who-signs" data-in>
-              <p className="side-label">Nghe có giống bạn không?</p>
-              <ul>
-                {forWho.signs.map((s) => (
-                  <li key={s}>{s}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          <Title id="c1">{forWho.title}</Title>
+          <p className="big-line" data-in>
+            <Marked text={forWho.line1} />
+          </p>
+          <p className="big-line big-line--2" data-in>
+            <Marked text={forWho.line2} />
+          </p>
+          <Timeline t={forWho.timeline} />
         </div>
       </section>
 
-      {/* ── 2. NGƯỜI XÂY CHƯƠNG TRÌNH (điểm nhấn) ── */}
-      <section className="ch ground-navy ch--peak" data-chapter="Người xây chương trình" data-num="2" aria-label="Chương 2: Người xây chương trình">
+      {/* ── 2. NGƯỜI DẠY (điểm nhấn) ── */}
+      <section className="ch ground-navy ch--peak" data-chapter="Người dạy" data-num="2" aria-labelledby="c2">
         <div className="wrap">
-          <ChapterHead num="2" title="Người xây chương trình">
-            Người xây <span className="hl">chương trình</span>
-          </ChapterHead>
+          <Title id="c2">Người dạy</Title>
           <div className="peak">
             <div className="peak-stage" data-stamp-stage>
               <div className="peak-sticky">
@@ -187,207 +184,131 @@ export default function BrochureCanBanPage() {
                   <li key={c}>{c}</li>
                 ))}
               </ul>
-              <p data-in>{founder.body}</p>
-              <p className="teachers" data-in>
-                {founder.teachers}
-              </p>
               <figure className="photo photo--peak" data-in>
                 <div className="photo-frame" data-drift="26">
-                  <Image
-                    src="/students/class-photo-3.jpg"
-                    alt={founder.photoAlt}
-                    fill
-                    sizes="(min-width: 1024px) 480px, 92vw"
-                    className="photo-img"
-                  />
+                  <Image src="/students/class-photo-3.jpg" alt={founder.photoAlt} fill sizes="(min-width: 1024px) 480px, 92vw" className="photo-img" />
                 </div>
                 <figcaption>{founder.photoCaption}</figcaption>
               </figure>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* ── 3. MỖI UNIT 3 BUỔI ── */}
-      <section className="ch ground-paper" data-chapter="Mỗi unit học trong 3 buổi" data-num="3" aria-label="Chương 3: Mỗi unit học trong 3 buổi">
-        <div className="wrap">
-          <ChapterHead num="3" title="Mỗi unit học trong 3 buổi">
-            Mỗi unit học trong <span className="hl">3 buổi</span>
-          </ChapterHead>
-          <p className="lead" data-in>
-            {method.lead}
-          </p>
-          <ol className="sessions">
-            {method.sessions.map((s, i) => (
-              <li key={s.n} className="session" data-reveal>
-                <span className="s-n" aria-hidden="true">
-                  {s.n}
-                </span>
-                <div className="s-body">
-                  <h3>
-                    <span className="sr-only">Buổi {s.n}: </span>
-                    {s.title}
-                  </h3>
-                  <p>{s.text}</p>
-                </div>
-                <div className="s-thread" aria-hidden="true">
-                  <span className="chip">{method.example.words.join(' · ')}</span>
-                  <span className="s-thread-label">
-                    {i === 0 ? 'gặp lần đầu' : i === 1 ? 'trong bài ngữ pháp' : 'trong đoạn văn dịch'}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <p className="example" data-in>
-            <b>{method.example.label}:</b> {method.example.words.join(', ')} {method.example.text}
-          </p>
-          <p className="note" data-in>
-            {method.games}
-          </p>
-        </div>
-      </section>
-
-      {/* ── 4. LỘ TRÌNH ── */}
-      <section className="ch ground-sheet" data-chapter="Lộ trình 49 buổi" data-num="4" aria-label="Chương 4: Lộ trình 49 buổi">
-        <div className="wrap">
-          <ChapterHead num="4" title="Lộ trình 49 buổi">
-            Lộ trình <span className="hl">49 buổi</span>
-          </ChapterHead>
-
-          <div className="ky-row" data-in>
-            <span className="ky-tag">{roadmap.ky1.title}</span>
-            <span className="ky-meta">{roadmap.ky1.meta}</span>
-          </div>
-          <div className="stages">
-            {stages.map((st) => (
-              <section className="stage" key={st.label} data-in aria-label={`${st.label}, ${st.range}`}>
-                <h3 className="stage-head">
-                  {st.label} <span>· {st.range}</span>
-                </h3>
-                <ol className="units">
-                  {st.units.map((u) => (
-                    <li key={u.n}>
-                      <span className="u-n">Unit {u.n}</span>
-                      <span className="u-en">{u.en}</span>
-                      <span className="u-vi">{u.vi}</span>
-                      <span className="u-gr">
-                        <b>Ngữ pháp:</b> {u.gr}
-                      </span>
-                    </li>
-                  ))}
-                </ol>
-                <p className="test">
-                  <b>Test {st.test.n}</b>
-                  <span>buổi {st.test.at}</span>
-                </p>
-              </section>
-            ))}
-          </div>
-          <p className="note" data-in>
-            {roadmap.testNote}
-          </p>
-
-          <div className="ky-row ky-row--2" data-in>
-            <span className="ky-tag">{roadmap.ky2.title}</span>
-            <span className="ky-meta">{roadmap.ky2.meta}</span>
-          </div>
-          <ol className="ky2" data-in>
-            {roadmap.ky2.sessions.map((s, i) => (
-              <li key={s} className={s.startsWith('Test') ? 'is-test' : undefined}>
-                <span className="ky2-i">{i + 1}</span>
-                {s}
-              </li>
-            ))}
-          </ol>
-          <p className="note" data-in>
-            {roadmap.ky2.note}
-          </p>
-        </div>
-      </section>
-
-      {/* ── 5. HỌC XONG CÓ GÌ ── */}
-      <section className="ch ground-amber" data-chapter="Học xong khoá, bạn có gì" data-num="5" aria-label="Chương 5: Học xong khoá, bạn có gì">
-        <div className="wrap wrap--split" data-reveal>
-          <ChapterHead num="5" title="Học xong khoá, bạn có gì">
-            Học xong khoá, bạn có gì
-          </ChapterHead>
-          <div>
-            <ol className="outcomes">
-              {outcomes.items.map((o) => (
-                <li key={o}>{o}</li>
+          <div className="team">
+            <h3 className="team-title" data-in>
+              Đứng lớp cùng thầy
+            </h3>
+            <div className="team-grid">
+              {teachers.map((t) => (
+                <TeacherCard key={t.id} t={t} />
               ))}
-            </ol>
-            <p className="target">{outcomes.target}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 6. DÀNH CHO PHỤ HUYNH ── */}
-      <section className="ch ground-paper" data-chapter="Dành cho phụ huynh" data-num="6" aria-label="Chương 6: Dành cho phụ huynh">
-        <div className="wrap">
-          <ChapterHead num="6" title="Dành cho phụ huynh">
-            Dành cho <span className="hl">phụ huynh</span>
-          </ChapterHead>
-          <div className="parents">
-            <figure className="photo photo--parents" data-in>
-              <span className="tape tape--photo" aria-hidden="true" />
-              <div className="photo-frame" data-drift="34">
-                <Image src="/students/class-group.jpg" alt={parents.photoAlt} fill sizes="(min-width: 1024px) 460px, 92vw" className="photo-img" />
-              </div>
-              <figcaption>{parents.photoCaption}</figcaption>
-            </figure>
-            <div className="parents-text">
-              <p className="lead" data-in>
-                {parents.lead}
-              </p>
-              <dl className="channels" data-in>
-                {parents.items.map((it) => (
-                  <div key={it.k}>
-                    <dt>{it.k}</dt>
-                    <dd>{it.v}</dd>
-                  </div>
-                ))}
-              </dl>
-              <p className="ask" data-in>
-                {parents.ask}
-              </p>
             </div>
+            <p className="team-note" data-in>
+              {teachersNote}
+            </p>
           </div>
         </div>
       </section>
 
-      {/* ── 7. HỌC VIÊN NÓI GÌ ── */}
-      <section className="ch ground-navy" data-chapter="Học viên nói gì" data-num="7" aria-label="Chương 7: Học viên nói gì">
+      {/* ── 3. MỖI UNIT, 3 BUỔI ── */}
+      <section className="ch ground-paper" data-chapter="Mỗi unit, 3 buổi" data-num="3" aria-labelledby="c3">
         <div className="wrap">
-          <ChapterHead num="7" title="Học viên nói gì">
-            Học viên <span className="hl">nói gì</span>
-          </ChapterHead>
-          <div className="voice">
-            <blockquote className="quote" data-in>
-              {testimonial.quote.map((q) => (
-                <p key={q.slice(0, 20)}>{q}</p>
-              ))}
-              <footer>
-                <b>{testimonial.name}</b>, {testimonial.who}
-              </footer>
-            </blockquote>
-            <figure className="photo photo--voice" data-in>
-              <div className="photo-frame photo-frame--square">
-                <Image src="/students/stars-of-the-month.jpg" alt={testimonial.photoAlt} fill sizes="(min-width: 1024px) 360px, 92vw" className="photo-img" />
+          <Title id="c3">Mỗi unit, 3 buổi</Title>
+          <ol className="days">
+            {sessions.map((s) => (
+              <li key={s.n} className={`day day--${s.n}`} data-in>
+                <div className="day-text">
+                  <p className="day-n">Buổi {s.n}</p>
+                  <h3 className="day-title">
+                    <mark className="nb" data-mark>
+                      {s.title}
+                    </mark>
+                    {s.isNew ? <span className="tag-new">Mới: {s.isNew}</span> : null}
+                  </h3>
+                  {s.sub ? <p className="day-sub">{s.sub}</p> : null}
+                </div>
+                <DayArt n={s.n} />
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ── 4. BA ĐIỀU PHỤ HUYNH YÊN TÂM ── */}
+      <section className="ch ground-sheet" data-chapter={usps.title} data-num="4" aria-labelledby="c4">
+        <div className="wrap">
+          <Title id="c4">{usps.title}</Title>
+          <div className="usp-grid">
+            <article className="usp usp--test" data-in>
+              <div className="usp-text">
+                <h3>
+                  <mark className="nb" data-mark>
+                    {usps.test.title}
+                  </mark>
+                </h3>
+                <p>{usps.test.text}</p>
               </div>
-              <figcaption>{testimonial.photoCaption}</figcaption>
-            </figure>
+              <TestTiles />
+            </article>
+
+            <article className="usp usp--web" data-in>
+              <div className="usp-text">
+                <h3>
+                  <mark className="nb" data-mark>
+                    {usps.web.title}
+                  </mark>
+                </h3>
+                <p>{usps.web.text}</p>
+              </div>
+              <div className="phone">
+                <video
+                  className="phone-video"
+                  data-autoplay
+                  muted
+                  loop
+                  playsInline
+                  preload="none"
+                  poster="/media/trang-hoc-poster.jpg"
+                  aria-label="Video ngắn: trang học trên web, thầy sửa bài viết, bài nói tự thành chữ, nộp xong biết câu sai"
+                >
+                  <source src="/media/trang-hoc.mp4" type="video/mp4" />
+                </video>
+              </div>
+            </article>
+
+            <article className="usp usp--report" data-in>
+              <div className="usp-text">
+                <h3>
+                  <mark className="nb" data-mark>
+                    {usps.report.title}
+                  </mark>
+                </h3>
+                <p>{usps.report.text}</p>
+              </div>
+              <ReportCard rows={usps.report.rows} />
+            </article>
           </div>
         </div>
       </section>
 
-      {/* ── KẾT: HỌC PHÍ VÀ ĐĂNG KÝ ── */}
-      <section className="ch ground-paper ch--close" data-chapter="Học phí và đăng ký" data-num="8" aria-label="Học phí và đăng ký">
+      {/* ── 5. HỌC VIÊN NÓI GÌ: chỉ video Ngọc Lan ── */}
+      <section className="ch ground-navy ch--lan" data-chapter={lan.title} data-num="5" aria-labelledby="c5">
+        <div className="wrap lan">
+          <Title id="c5">{lan.title}</Title>
+          <figure className="lan-video" data-in>
+            <video controls playsInline preload="none" poster={lan.poster} className="lan-player">
+              <source src={LAN_SRC} type="video/mp4" />
+            </video>
+            <figcaption>
+              {lan.caption} <span>({lan.duration})</span>
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      {/* ── KẾT: HỌC PHÍ ── */}
+      <section className="ch ground-paper ch--close" data-chapter="Học phí" data-num="6" aria-labelledby="c6">
         <div className="wrap">
-          <ChapterHead num="8" title="Học phí và đăng ký">
-            Học phí và <span className="hl">đăng ký</span>
-          </ChapterHead>
+          <Title id="c6">Học phí</Title>
           <div className="close">
             <div className="price-card" data-in>
               <p className="price-basis">{pricing.basis}</p>
@@ -406,49 +327,24 @@ export default function BrochureCanBanPage() {
                   ))}
                 </tbody>
               </table>
-              <ul className="price-notes">
-                {pricing.notes.map((n) => (
-                  <li key={n}>{n}</li>
-                ))}
-              </ul>
+              <p className="price-material">{pricing.material}</p>
             </div>
-
-            <div className="close-side">
-              <div className="rules" data-in>
-                <div>
-                  <h3>Quyền lợi</h3>
-                  <ul>
-                    {rules.rights.map((r) => (
-                      <li key={r}>{r}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h3>Nghĩa vụ</h3>
-                  <ul>
-                    {rules.duties.map((r) => (
-                      <li key={r}>{r}</li>
-                    ))}
-                  </ul>
-                </div>
+            <div className="close-side" data-in>
+              <p className="trial">
+                <mark className="nb" data-mark>
+                  {pricing.trial}
+                </mark>
+              </p>
+              <div className="cta-row">
+                <a className="btn btn-primary" href={BROCHURE_FORM_URL} target="_blank" rel="noopener noreferrer">
+                  Đăng ký học thử
+                </a>
+                <a className="btn btn-ghost" href={ZALO_URL} target="_blank" rel="noopener noreferrer">
+                  <ChatIcon />
+                  Zalo {ZALO_DISPLAY}
+                </a>
               </div>
-              <div className="enrol" data-in>
-                <h3>Đăng ký học thử trong 3 bước</h3>
-                <ol>
-                  {enrol.steps.map((s) => (
-                    <li key={s}>{s}</li>
-                  ))}
-                </ol>
-                <div className="cta-row">
-                  <a className="btn btn-primary" href={BROCHURE_FORM_URL} target="_blank" rel="noopener noreferrer">
-                    Đăng ký học thử
-                  </a>
-                  <a className="btn btn-ghost" href={ZALO_URL} target="_blank" rel="noopener noreferrer">
-                    <ChatIcon />
-                    Zalo {ZALO_DISPLAY}
-                  </a>
-                </div>
-              </div>
+              <p className="address">Lớp học: {ADDRESS}</p>
             </div>
           </div>
 

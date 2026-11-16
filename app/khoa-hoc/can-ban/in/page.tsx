@@ -1,7 +1,7 @@
-// Bản in A4 của brochure IELTS Căn Bản (6 trang, luật "tài liệu gửi học sinh tối đa 6 trang").
-// Dùng để xuất PDF ở public/brochure/ielts-can-ban-4-5.pdf:
-//   chrome --headless=new --no-pdf-header-footer --print-to-pdf=public/brochure/ielts-can-ban-4-5.pdf <web>/khoa-hoc/can-ban/in
-// Nội dung chung với trang web (lib/brochure-can-ban.ts). Không gắn link công khai tới trang này.
+// Bản in A4 của brochure IELTS Căn Bản (5 trang; luật "tài liệu gửi học sinh tối đa 6 trang").
+// Xuất PDF ở public/brochure/ielts-can-ban-4-5.pdf bằng Playwright page.pdf({ preferCSSPageSize, printBackground })
+// sau khi ẩn nextjs-portal (xem memory project-brochure-can-ban). Nội dung chung với trang web (lib/brochure-can-ban.ts).
+// Không gắn link công khai tới trang này. Hình động đứng yên ở trạng thái cuối.
 /* eslint-disable @next/next/no-img-element -- bản in cần ảnh gốc tải ngay, không qua bộ tối ưu ảnh */
 import type { Metadata } from 'next'
 import '../brochure.css'
@@ -11,20 +11,19 @@ import {
   ADDRESS,
   UPDATED,
   ZALO_DISPLAY,
-  enrol,
   forWho,
   founder,
   hero,
-  method,
-  outcomes,
-  parents,
+  lan,
   pricing,
-  roadmap,
-  rules,
-  stages,
-  testimonial,
+  sessions,
+  splitMarks,
+  teachers,
+  teachersNote,
+  usps,
 } from '@/lib/brochure-can-ban'
 import { ScoreSheet } from '../score-sheet'
+import { DayArt, ReportCard, TestTiles, Timeline } from '../parts'
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://test.longielts.website'),
@@ -32,9 +31,25 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-const TOTAL = 6
+const TOTAL = 5
 const WEB_HOST = 'test.longielts.website'
 const WEB_PATH = '/khoa-hoc/can-ban'
+
+function Marked({ text }: { text: string }) {
+  return (
+    <>
+      {splitMarks(text).map((p, i) =>
+        p.mark ? (
+          <mark key={i} className="nb">
+            {p.t}
+          </mark>
+        ) : (
+          <span key={i}>{p.t}</span>
+        ),
+      )}
+    </>
+  )
+}
 
 function Foot({ n }: { n: number }) {
   return (
@@ -44,15 +59,6 @@ function Foot({ n }: { n: number }) {
         {n}/{TOTAL}
       </span>
     </footer>
-  )
-}
-
-function H({ num, children }: { num: string; children: React.ReactNode }) {
-  return (
-    <header className="p-head">
-      <p className="ch-num">Chương {num}</p>
-      <h2 className="p-title">{children}</h2>
-    </header>
   )
 }
 
@@ -73,14 +79,6 @@ export default function BrochurePrintPage() {
             </span>
           </h1>
           <p className="hero-sub">{hero.sub}</p>
-          <dl className="p-facts">
-            {forWho.facts.map((f) => (
-              <div key={f.k}>
-                <dt>{f.k}</dt>
-                <dd>{f.v}</dd>
-              </div>
-            ))}
-          </dl>
           <div className="p-cover-sheet" aria-hidden="true">
             <span className="tape tape--hero" />
             <div className="trf-top">
@@ -93,29 +91,21 @@ export default function BrochurePrintPage() {
           </div>
         </div>
         <div className="p-who">
-          <H num="1">
-            Khoá này <span className="hl">dành cho ai</span>
-          </H>
-          <div className="p-who-grid">
-            <p className="p-lead">{forWho.lead}</p>
-            <div>
-              <p className="side-label">Nghe có giống bạn không?</p>
-              <ul className="p-signs">
-                {forWho.signs.map((s) => (
-                  <li key={s}>{s}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          <h2 className="p-title">{forWho.title}</h2>
+          <p className="big-line">
+            <Marked text={forWho.line1} />
+          </p>
+          <p className="big-line big-line--2">
+            <Marked text={forWho.line2} />
+          </p>
+          <Timeline t={forWho.timeline} />
         </div>
         <Foot n={1} />
       </section>
 
-      {/* 2 · Người xây chương trình */}
+      {/* 2 · Người dạy */}
       <section className="pg ground-navy">
-        <H num="2">
-          Người xây <span className="hl">chương trình</span>
-        </H>
+        <h2 className="p-title">Người dạy</h2>
         <div className="p-peak">
           <div className="p-peak-text">
             <p className="peak-name">
@@ -127,224 +117,152 @@ export default function BrochurePrintPage() {
                 <li key={c}>{c}</li>
               ))}
             </ul>
-            <p>{founder.body}</p>
-            <p className="teachers">{founder.teachers}</p>
+            <figure className="p-photo">
+              <img src="/students/class-photo-3.jpg" alt={founder.photoAlt} />
+              <figcaption>{founder.photoCaption}</figcaption>
+            </figure>
           </div>
           <ScoreSheet />
         </div>
-        <figure className="p-photo">
-          <img src="/students/class-photo-3.jpg" alt={founder.photoAlt} />
-          <figcaption>{founder.photoCaption}</figcaption>
-        </figure>
+        <h3 className="team-title">Đứng lớp cùng thầy</h3>
+        <div className="p-team">
+          {teachers.map((t) => (
+            <article className="tcard" key={t.id}>
+              <div className="tcard-photo">
+                {t.photo ? (
+                  <img src={t.photo} alt={t.photoAlt} className="p-tcard-img" />
+                ) : (
+                  <span className="tcard-mono" aria-hidden="true">
+                    {t.name.replace('Cô ', '').charAt(0)}
+                  </span>
+                )}
+              </div>
+              <div className="tcard-body">
+                <h4 className="tcard-name">{t.name}</h4>
+                <p className="tcard-badge">{t.badge}</p>
+                <ul className="tcard-points">
+                  {t.points.map((p) => (
+                    <li key={p}>{p}</li>
+                  ))}
+                </ul>
+              </div>
+            </article>
+          ))}
+        </div>
+        <p className="team-note">{teachersNote}</p>
         <Foot n={2} />
       </section>
 
-      {/* 3 · Mỗi unit 3 buổi + học xong có gì */}
-      <section className="pg ground-sheet">
-        <H num="3">
-          Mỗi unit học trong <span className="hl">3 buổi</span>
-        </H>
-        <p className="p-lead">{method.lead}</p>
-        <ol className="p-sessions">
-          {method.sessions.map((s, i) => (
-            <li key={s.n}>
-              <span className="s-n">{s.n}</span>
-              <div>
-                <h3>{s.title}</h3>
-                <p>{s.text}</p>
+      {/* 3 · Mỗi unit, 3 buổi */}
+      <section className="pg ground-paper">
+        <h2 className="p-title">Mỗi unit, 3 buổi</h2>
+        <ol className="days">
+          {sessions.map((s) => (
+            <li key={s.n} className={`day day--${s.n}`}>
+              <div className="day-text">
+                <p className="day-n">Buổi {s.n}</p>
+                <h3 className="day-title">
+                  <mark className="nb">{s.title}</mark>
+                  {s.isNew ? <span className="tag-new">Mới: {s.isNew}</span> : null}
+                </h3>
+                {s.sub ? <p className="day-sub">{s.sub}</p> : null}
               </div>
-              <div className="p-thread">
-                <span className="chip">{method.example.words.join(' · ')}</span>
-                <span className="s-thread-label">
-                  {i === 0 ? 'gặp lần đầu' : i === 1 ? 'trong bài ngữ pháp' : 'trong đoạn văn dịch'}
-                </span>
-              </div>
+              <DayArt n={s.n} />
             </li>
           ))}
         </ol>
-        <p className="p-small">{method.games}</p>
-        <div className="p-outcomes ground-amber">
-          <h2 className="p-title p-title--sm">
-            <span className="p-num">Chương 5 · </span>Học xong khoá, bạn có gì
-          </h2>
-          <ol className="outcomes">
-            {outcomes.items.map((o) => (
-              <li key={o}>{o}</li>
-            ))}
-          </ol>
-          <p className="target">{outcomes.target}</p>
-        </div>
         <Foot n={3} />
       </section>
 
-      {/* 4 · Lộ trình */}
+      {/* 4 · Ba điều phụ huynh yên tâm */}
       <section className="pg ground-sheet">
-        <H num="4">
-          Lộ trình <span className="hl">49 buổi</span>
-        </H>
-        <div className="ky-row">
-          <span className="ky-tag">{roadmap.ky1.title}</span>
-          <span className="ky-meta">{roadmap.ky1.meta}</span>
-        </div>
-        <div className="p-stages">
-          {stages.map((st) => (
-            <section className="stage" key={st.label}>
-              <h3 className="stage-head">
-                {st.label} <span>· {st.range}</span>
+        <h2 className="p-title">{usps.title}</h2>
+        <article className="usp usp--test">
+          <div className="usp-text">
+            <h3>
+              <mark className="nb">{usps.test.title}</mark>
+            </h3>
+            <p>{usps.test.text}</p>
+          </div>
+          <TestTiles />
+        </article>
+        <div className="p-usp2">
+          <article className="usp usp--web">
+            <div className="usp-text">
+              <h3>
+                <mark className="nb">{usps.web.title}</mark>
               </h3>
-              <ol className="units">
-                {st.units.map((u) => (
-                  <li key={u.n}>
-                    <span className="u-n">Unit {u.n}</span>
-                    <span className="u-en">{u.en}</span>
-                    <span className="u-vi">{u.vi}</span>
-                    <span className="u-gr">
-                      <b>Ngữ pháp:</b> {u.gr}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-              <p className="test">
-                <b>Test {st.test.n}</b>
-                <span>buổi {st.test.at}</span>
-              </p>
-            </section>
-          ))}
+              <p>{usps.web.text}</p>
+            </div>
+            <div className="phone">
+              <img className="phone-video" src="/media/trang-hoc-poster.jpg" alt="Trang học trên web: thầy sửa ngay trên bài em viết" />
+            </div>
+          </article>
+          <article className="usp usp--report">
+            <div className="usp-text">
+              <h3>
+                <mark className="nb">{usps.report.title}</mark>
+              </h3>
+              <p>{usps.report.text}</p>
+            </div>
+            <ReportCard rows={usps.report.rows} />
+          </article>
         </div>
-        <p className="p-small">{roadmap.testNote}</p>
-        <div className="ky-row ky-row--p2">
-          <span className="ky-tag">{roadmap.ky2.title}</span>
-          <span className="ky-meta">{roadmap.ky2.meta}</span>
-        </div>
-        <ol className="ky2">
-          {roadmap.ky2.sessions.map((s, i) => (
-            <li key={s} className={s.startsWith('Test') ? 'is-test' : undefined}>
-              <span className="ky2-i">{i + 1}</span>
-              {s}
-            </li>
-          ))}
-        </ol>
-        <p className="p-small">{roadmap.ky2.note}</p>
         <Foot n={4} />
       </section>
 
-      {/* 5 · Phụ huynh + học viên */}
+      {/* 5 · Học viên + học phí + liên hệ */}
       <section className="pg ground-paper">
-        <H num="6">
-          Dành cho <span className="hl">phụ huynh</span>
-        </H>
-        <div className="p-parents">
-          <figure className="p-photo p-photo--side">
-            <img src="/students/class-group.jpg" alt={parents.photoAlt} />
-            <figcaption>{parents.photoCaption}</figcaption>
-          </figure>
+        <div className="p-last">
+          <div className="p-lan ground-navy">
+            <h2 className="p-title p-title--sm">{lan.title}</h2>
+            <img src={lan.poster} alt="Video Trương Ngọc Lan, IELTS 7.5" className="p-lan-img" />
+            <p className="p-lan-cap">
+              {lan.caption} Xem video ({lan.duration}) trên bản web, quét mã bên cạnh.
+            </p>
+          </div>
           <div>
-            <p className="p-lead">{parents.lead}</p>
-            <dl className="channels">
-              {parents.items.map((it) => (
-                <div key={it.k}>
-                  <dt>{it.k}</dt>
-                  <dd>{it.v}</dd>
-                </div>
-              ))}
-            </dl>
-            <p className="ask">{parents.ask}</p>
-          </div>
-        </div>
-        <div className="p-voice ground-navy">
-          <div>
-            <p className="ch-num">Chương 7 · Học viên nói gì</p>
-            <blockquote className="quote">
-              {testimonial.quote.map((q) => (
-                <p key={q.slice(0, 20)}>{q}</p>
-              ))}
-              <footer>
-                <b>{testimonial.name}</b>, {testimonial.who}
-              </footer>
-            </blockquote>
-          </div>
-          <figure className="p-photo p-photo--voice">
-            <img src="/students/stars-of-the-month.jpg" alt={testimonial.photoAlt} />
-            <figcaption>{testimonial.photoCaption}</figcaption>
-          </figure>
-        </div>
-        <Foot n={5} />
-      </section>
-
-      {/* 6 · Học phí + đăng ký */}
-      <section className="pg ground-paper">
-        <H num="8">
-          Học phí và <span className="hl">đăng ký</span>
-        </H>
-        <div className="p-close">
-          <div className="price-card">
-            <p className="price-basis">{pricing.basis}</p>
-            <table className="price">
-              <tbody>
-                {pricing.plans.map((p) => (
-                  <tr key={p.k} className={p.best ? 'is-best' : undefined}>
-                    <th scope="row">
-                      {p.k}
-                      {p.save ? <small>{p.save}</small> : null}
-                      {p.best ? <em>Tiết kiệm nhất</em> : null}
-                    </th>
-                    <td>{p.v}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <ul className="price-notes">
-              {pricing.notes.map((n) => (
-                <li key={n}>{n}</li>
-              ))}
-            </ul>
-          </div>
-          <div className="rules rules--p">
-            <div>
-              <h3>Quyền lợi</h3>
-              <ul>
-                {rules.rights.map((r) => (
-                  <li key={r}>{r}</li>
-                ))}
-              </ul>
+            <h2 className="p-title">Học phí</h2>
+            <div className="price-card">
+              <p className="price-basis">{pricing.basis}</p>
+              <table className="price">
+                <tbody>
+                  {pricing.plans.map((p) => (
+                    <tr key={p.k} className={p.best ? 'is-best' : undefined}>
+                      <th scope="row">
+                        {p.k}
+                        {p.save ? <small>{p.save}</small> : null}
+                        {p.best ? <em>Tiết kiệm nhất</em> : null}
+                      </th>
+                      <td>{p.v}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="price-material">{pricing.material}</p>
             </div>
-            <div>
-              <h3>Nghĩa vụ</h3>
-              <ul>
-                {rules.duties.map((r) => (
-                  <li key={r}>{r}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div className="p-enrol">
-          <div className="enrol">
-            <h3>Đăng ký học thử trong 3 bước</h3>
-            <ol>
-              {enrol.steps.map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </ol>
-          </div>
-          <div className="p-contact ground-navy">
-            <img className="p-qr" src="/brochure/qr-can-ban.svg" alt="Mã QR mở brochure trên web" />
-            <div>
-              <p className="p-contact-k">Quét mã để xem bản web và đăng ký</p>
-              <p className="p-contact-v">
-                {WEB_HOST}
-                <br />
-                {WEB_PATH}
-              </p>
-              <p className="p-contact-k">Zalo thầy Long</p>
-              <p className="p-contact-v">{ZALO_DISPLAY}</p>
-              <p className="p-contact-k">Địa chỉ lớp</p>
-              <p className="p-contact-v">{ADDRESS}</p>
+            <p className="trial">
+              <mark className="nb">{pricing.trial}</mark>
+            </p>
+            <div className="p-contact ground-navy">
+              <img className="p-qr" src="/brochure/qr-can-ban.svg" alt="Mã QR mở brochure trên web" />
+              <div>
+                <p className="p-contact-k">Quét mã: bản web, video, đăng ký</p>
+                <p className="p-contact-v">
+                  {WEB_HOST}
+                  <br />
+                  {WEB_PATH}
+                </p>
+                <p className="p-contact-k">Zalo thầy Long</p>
+                <p className="p-contact-v">{ZALO_DISPLAY}</p>
+                <p className="p-contact-k">Địa chỉ lớp</p>
+                <p className="p-contact-v">{ADDRESS}</p>
+              </div>
             </div>
           </div>
         </div>
         <p className="p-small p-updated">Cập nhật {UPDATED}</p>
-        <Foot n={6} />
+        <Foot n={5} />
       </section>
     </main>
   )

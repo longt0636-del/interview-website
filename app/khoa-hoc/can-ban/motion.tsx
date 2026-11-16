@@ -13,10 +13,15 @@ export function BrochureMotion() {
     const root = document.querySelector<HTMLElement>('.bro')
     if (!root) return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (reduce) return // giữ trạng thái đầy đủ, không ẩn gì, không trôi gì
+    const videos = Array.from(root.querySelectorAll<HTMLVideoElement>('video[data-autoplay]'))
+    if (reduce) {
+      // giữ trạng thái đầy đủ, không ẩn gì, không trôi gì; video không tự chạy, có nút bấm
+      videos.forEach((v) => (v.controls = true))
+      return
+    }
     root.classList.add('motion-ready')
 
-    // 1. Hiện dần khi vào màn hình (một lần)
+    // 1. Hiện dần khi vào màn hình (một lần). [data-mark] = nét bút dạ quang quét qua cụm cần chú ý (noticing).
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -29,6 +34,36 @@ export function BrochureMotion() {
       { rootMargin: '0px 0px -10% 0px', threshold: 0.01 },
     )
     root.querySelectorAll('[data-in],[data-reveal]').forEach((el) => io.observe(el))
+    const markIo = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-in')
+            markIo.unobserve(e.target)
+          }
+        }
+      },
+      { rootMargin: '0px 0px -22% 0px', threshold: 1 },
+    )
+    root.querySelectorAll('[data-mark]').forEach((el) => markIo.observe(el))
+
+    // Video trang học: chỉ chạy khi đang thấy trên màn hình (tiết kiệm pin + dữ liệu điện thoại)
+    const vio = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          const v = e.target as HTMLVideoElement
+          if (e.isIntersecting) {
+            v.preload = 'auto'
+            v.play().catch(() => {
+              v.controls = true
+            })
+          } else v.pause()
+        }
+      },
+      { threshold: 0.35 },
+    )
+    videos.forEach((v) => vio.observe(v))
+    const fills = Array.from(root.querySelectorAll<HTMLElement>('[data-fill]'))
 
     const layers = Array.from(root.querySelectorAll<HTMLElement>('[data-depth]'))
     const drifts = Array.from(root.querySelectorAll<HTMLElement>('[data-drift]'))
@@ -79,6 +114,13 @@ export function BrochureMotion() {
         }
       }
 
+      // 4b. Đường thời gian chương 1: đoạn "6 tháng" tô dần theo cuộn
+      for (const f of fills) {
+        const r = f.getBoundingClientRect()
+        if (r.bottom < -50 || r.top > vh + 50) continue
+        f.style.setProperty('--fill', clamp((vh * 0.92 - r.top) / (vh * 0.42)).toFixed(3))
+      }
+
       // 5. Phiếu điểm tự đóng dấu
       if (stage) {
         const r = stage.getBoundingClientRect()
@@ -103,6 +145,8 @@ export function BrochureMotion() {
       window.removeEventListener('resize', onScroll)
       if (raf) cancelAnimationFrame(raf)
       io.disconnect()
+      markIo.disconnect()
+      vio.disconnect()
     }
   }, [])
   return null

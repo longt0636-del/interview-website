@@ -1,4 +1,4 @@
-/* Bản in A4 của brochure Căn Bản — mỗi .pg là đúng một trang A4 (794 × 1123 px ở 96 dpi). Dùng lại token của brochure.css. */
+/* Bản in A4 của brochure Căn Bản (bản 2, 5 trang) — mỗi .pg đúng một trang A4 (794 × 1123 px ở 96 dpi). Dùng lại brochure.css. */
 @page {
   size: A4;
   margin: 0;
@@ -34,6 +34,19 @@ body:has(.bro-print) {
     box-shadow: none;
   }
 }
+/* Bản in: mọi hình động đứng yên ở trạng thái cuối */
+.bro-print *,
+.bro-print *::before,
+.bro-print *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.bro-print .pair--2 {
+  opacity: 0;
+}
+.bro-print .read-hl {
+  transform: translateY(20px);
+}
 .bro-print .pg-foot {
   position: absolute;
   left: 50px;
@@ -48,39 +61,29 @@ body:has(.bro-print) {
   border-top: 1px solid var(--line);
   padding-top: 8px;
 }
-.bro-print .p-head {
-  margin-bottom: 18px;
-}
-.bro-print .ch-num {
-  font-size: 13px;
-}
 .bro-print .p-title {
-  margin-top: 6px;
+  margin: 0 0 18px;
   font: 700 34px/1.08 var(--f-serif);
   letter-spacing: -0.01em;
 }
 .bro-print .p-title--sm {
   font-size: 24px;
-  margin: 0 0 8px;
-}
-.bro-print .p-num {
-  font: italic 600 14px var(--f-serif);
-}
-.bro-print .p-lead {
-  font-size: 14.5px;
-  line-height: 1.6;
-  max-width: 62ch;
+  margin-bottom: 12px;
 }
 .bro-print .p-small {
-  margin-top: 10px;
-  font: italic 400 12.5px/1.5 var(--f-serif);
+  font: italic 400 12px/1.5 var(--f-serif);
   color: var(--ink-soft);
+}
+.bro-print .p-updated {
+  position: absolute;
+  left: 50px;
+  bottom: 52px;
 }
 
 /* Trang 1 */
 .bro-print .p-cover {
   position: relative;
-  height: 590px;
+  height: 470px;
 }
 .bro-print .p-brand {
   display: flex;
@@ -93,7 +96,7 @@ body:has(.bro-print) {
   color: var(--ink-soft);
 }
 .bro-print .h1 {
-  margin-top: 54px;
+  margin-top: 60px;
 }
 .bro-print .h1-box {
   font-size: 66px;
@@ -105,34 +108,10 @@ body:has(.bro-print) {
   font-size: 17px;
   max-width: 30ch;
 }
-.bro-print .p-facts {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 470px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-top: 1px solid var(--line);
-}
-.bro-print .p-facts > div {
-  padding: 9px 10px 9px 0;
-  border-bottom: 1px solid var(--line);
-}
-.bro-print .p-facts dt {
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-}
-.bro-print .p-facts dd {
-  font-weight: 700;
-  font-size: 14px;
-}
 .bro-print .p-cover-sheet {
   position: absolute;
   right: -18px;
-  bottom: 30px;
+  bottom: 10px;
   width: 230px;
   background: var(--sheet);
   border-radius: var(--r);
@@ -144,40 +123,41 @@ body:has(.bro-print) {
   font-size: 30px;
 }
 .bro-print .p-who {
-  margin-top: 48px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
 }
-.bro-print .p-who .p-lead {
-  font-size: 16px;
+.bro-print .p-who .p-title {
+  font-size: 26px;
+  margin-bottom: 14px;
 }
-.bro-print .p-who-grid {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: 30px;
+.bro-print .big-line {
+  font-size: 30px;
+  max-width: 24ch;
 }
-.bro-print .p-signs {
-  margin-top: 8px;
-  display: grid;
-  gap: 8px;
+.bro-print .big-line--2 {
+  margin-top: 14px;
+  font-size: 21px;
+  max-width: 34ch;
 }
-.bro-print .p-signs li {
-  position: relative;
-  padding-left: 20px;
-  font: italic 400 17px/1.4 var(--f-serif);
+.bro-print .tl {
+  margin-top: 30px;
 }
-.bro-print .p-signs li::before {
-  content: '“';
-  position: absolute;
-  left: 0;
-  top: -4px;
-  font: 700 24px/1 var(--f-serif);
-  opacity: 0.4;
+.bro-print .tl-track {
+  height: 38px;
+}
+.bro-print .tl-l1,
+.bro-print .tl-l2 {
+  font-size: 13px;
+}
+.bro-print .tl-ends {
+  font-size: 11px;
 }
 
 /* Trang 2 */
 .bro-print .p-peak {
   display: grid;
-  grid-template-columns: 1fr 330px;
-  gap: 30px;
+  grid-template-columns: 1fr 320px;
+  gap: 28px;
   align-items: start;
 }
 .bro-print .p-peak-text {
@@ -186,242 +166,172 @@ body:has(.bro-print) {
   font-size: 13.5px;
 }
 .bro-print .peak-name {
-  font-size: 24px;
+  font-size: 23px;
 }
 .bro-print .trf {
-  width: 330px;
+  width: 320px;
   padding: 16px 18px 18px;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 .bro-print .stamp {
-  font-size: 24px;
+  font-size: 23px;
 }
 .bro-print .stamp--big {
-  font-size: 34px;
-}
-.bro-print .p-photo {
-  margin-top: 22px;
+  font-size: 32px;
 }
 .bro-print .p-photo img {
   display: block;
   width: 100%;
-  height: 300px;
+  height: 170px;
   object-fit: cover;
   border-radius: var(--r);
-  box-shadow: var(--e2);
 }
 .bro-print .p-photo figcaption {
-  margin-top: 6px;
-  font: italic 400 12px/1.4 var(--f-serif);
+  margin-top: 5px;
+  font: italic 400 11.5px/1.4 var(--f-serif);
   color: var(--ink-soft);
+}
+.bro-print .team-title {
+  margin-top: 26px;
+  font-size: 22px;
+}
+.bro-print .p-team {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 14px;
+}
+.bro-print .tcard {
+  grid-template-columns: 110px 1fr;
+  gap: 14px;
+  padding: 14px;
+}
+.bro-print .p-tcard-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 20%;
+}
+.bro-print .tcard-name {
+  font-size: 20px;
+}
+.bro-print .tcard-badge {
+  font-size: 12px;
+}
+.bro-print .tcard-points li {
+  font-size: 12.5px;
+}
+.bro-print .team-note {
+  font-size: 13px;
+  margin-top: 12px;
 }
 
 /* Trang 3 */
-.bro-print .p-sessions {
-  margin-top: 14px;
-  border-top: 1px solid var(--line);
+.bro-print .days {
+  gap: 22px;
 }
-.bro-print .p-sessions li {
-  display: grid;
-  grid-template-columns: 46px 1fr 200px;
-  gap: 14px;
-  align-items: start;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
+.bro-print .day {
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 22px;
+  padding: 24px;
 }
-.bro-print .p-sessions .s-n {
-  font-size: 44px;
+.bro-print .day-title {
+  font-size: 32px;
 }
-.bro-print .p-sessions h3 {
-  font-weight: 800;
+.bro-print .day-sub {
   font-size: 16px;
 }
-.bro-print .p-sessions p {
-  margin-top: 2px;
-  font-size: 13px;
-  line-height: 1.5;
-}
-.bro-print .p-thread {
-  display: grid;
-  gap: 4px;
-  justify-items: start;
-}
-.bro-print .chip {
-  font-size: 11.5px;
-}
-.bro-print .s-thread-label {
-  font-size: 12px;
-}
-.bro-print .p-outcomes {
-  margin: 22px -50px 0;
-  padding: 22px 50px 24px;
-}
-.bro-print .outcomes li {
-  grid-template-columns: 34px 1fr;
-  padding: 8px 0;
-  font-size: 13.5px;
-}
-.bro-print .outcomes li::before {
-  font-size: 22px;
-}
-.bro-print .target {
-  margin-top: 14px;
-  padding: 10px 14px;
-  font-size: 13.5px;
+.bro-print .art {
+  min-height: 190px;
 }
 
 /* Trang 4 */
-.bro-print .p-stages {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px 24px;
+.bro-print .usp {
+  padding: 20px;
 }
-.bro-print .stage-head {
+.bro-print .usp h3 {
+  font-size: 22px;
+}
+.bro-print .usp-text p {
+  font-size: 13px;
+}
+.bro-print .usp--test {
+  grid-template-columns: 0.8fr 1.2fr;
+  align-items: center;
+  gap: 22px;
+}
+.bro-print .tiles {
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+}
+.bro-print .tile,
+.bro-print .tile-test {
+  height: 40px;
   font-size: 11px;
 }
-.bro-print .units li {
-  padding: 7px 0;
+.bro-print .p-usp2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-top: 18px;
 }
-.bro-print .u-n {
-  font-size: 10px;
+.bro-print .phone {
+  width: 200px;
 }
-.bro-print .u-en {
-  font-size: 14px;
-}
-.bro-print .u-vi {
-  font-size: 12.5px;
-}
-.bro-print .u-gr {
-  font-size: 12px;
-  margin-top: 1px;
-}
-.bro-print .test {
-  margin-top: 8px;
-  padding: 6px 10px;
-}
-.bro-print .ky-row {
-  margin-bottom: 12px;
-}
-.bro-print .ky-row--p2 {
-  margin-top: 22px;
-}
-.bro-print .ky2 li {
-  min-height: 32px;
-  font-size: 12.5px;
-  padding: 4px 10px 4px 4px;
-}
-.bro-print .ky2-i {
-  width: 22px;
-  height: 22px;
+.bro-print .report-rows li {
+  padding: 8px 0;
+  font-size: 13px;
 }
 
 /* Trang 5 */
-.bro-print .p-parents {
+.bro-print .p-last {
   display: grid;
-  grid-template-columns: 290px 1fr;
-  gap: 24px;
-  align-items: start;
-}
-.bro-print .p-photo--side {
-  margin-top: 0;
-}
-.bro-print .p-photo--side img {
-  height: 230px;
-}
-.bro-print .channels > div {
-  padding: 8px 0;
-}
-.bro-print .channels dt {
-  font-size: 14px;
-}
-.bro-print .channels dd {
-  font-size: 13px;
-  line-height: 1.5;
-}
-.bro-print .ask {
-  margin-top: 10px;
-  font-size: 13.5px;
-}
-.bro-print .p-voice {
-  margin: 26px -50px 0;
-  padding: 24px 50px 26px;
-  display: grid;
-  grid-template-columns: 1fr 210px;
-  gap: 24px;
-  align-items: start;
-}
-.bro-print .quote {
-  margin-top: 10px;
-  gap: 8px;
-}
-.bro-print .quote p {
-  font-size: 14px;
-  line-height: 1.55;
-}
-.bro-print .quote p:first-child::before {
-  font-size: 44px;
-  margin-bottom: 4px;
-}
-.bro-print .quote footer {
-  font-size: 13px;
-}
-.bro-print .p-photo--voice {
-  margin-top: 6px;
-}
-.bro-print .p-photo--voice img {
-  height: 210px;
-}
-
-/* Trang 6 */
-.bro-print .p-close {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 250px 1fr;
   gap: 28px;
   align-items: start;
 }
+.bro-print .p-lan {
+  padding: 20px 18px;
+  border-radius: var(--r);
+}
+.bro-print .p-lan-img {
+  display: block;
+  width: 100%;
+  border-radius: 10px;
+}
+.bro-print .p-lan-cap {
+  margin-top: 10px;
+  font: italic 400 12.5px/1.5 var(--f-serif);
+  color: var(--ink-soft);
+}
 .bro-print .price th {
-  font-size: 15.5px;
+  font-size: 15px;
 }
 .bro-print .price td {
-  font-size: 20px;
+  font-size: 19px;
 }
 .bro-print .price th,
 .bro-print .price td {
   padding: 10px 6px;
 }
-.bro-print .price-notes {
-  font-size: 14px;
-}
-.bro-print .rules--p {
-  grid-template-columns: 1fr;
-  gap: 20px;
-  font-size: 15px;
-}
-.bro-print .rules h3,
-.bro-print .enrol h3 {
-  font-size: 22px;
-}
-.bro-print .p-enrol {
-  margin-top: 40px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 28px;
-  align-items: start;
-}
-.bro-print .enrol ol {
-  font-size: 15px;
+.bro-print .trial {
+  margin-top: 18px;
+  font-size: 17px;
 }
 .bro-print .p-contact {
+  margin-top: 22px;
   display: grid;
-  grid-template-columns: 132px 1fr;
-  gap: 18px;
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
   align-items: center;
-  padding: 18px;
+  padding: 16px;
   border-radius: var(--r);
 }
 .bro-print .p-qr {
-  width: 132px;
-  height: 132px;
+  width: 120px;
+  height: 120px;
   background: #fff;
   padding: 8px;
   border-radius: 4px;
@@ -435,12 +345,12 @@ body:has(.bro-print) {
 }
 .bro-print .p-contact-v {
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.35;
   margin-bottom: 8px;
 }
-.bro-print .p-updated {
-  position: absolute;
-  left: 50px;
-  bottom: 52px;
+
+/* PDF không tôn trọng backface-visibility: mặt sau thẻ từ hiện ngược chữ, ẩn hẳn ở bản in */
+.bro-print .flip-b {
+  display: none;
 }

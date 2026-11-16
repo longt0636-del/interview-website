@@ -90,7 +90,7 @@ export const courses: Course[] = [
       { label: 'Thời gian', value: 'Khoảng 6 tháng, 49 buổi' },
       { label: 'Lịch học', value: '2 buổi/tuần' },
       { label: 'Chương trình', value: 'Thầy Long (IELTS 8.5)' },
-      { label: 'Giáo viên', value: 'Cô Thư, cô Châu (IELTS 7.5)' },
+      { label: 'Giáo viên', value: 'Cô Thư (IELTS 7.5), cô Châu' },
       { label: 'Sĩ số', value: 'Tối đa 10 bạn' },
     ],
     price: '1.200.000',
