@@ -105,14 +105,15 @@ export function splitMarks(s: string): { t: string; mark: boolean }[] {
 }
 
 /* ── Giáo viên (dùng lại ở nhiều khoá) ── */
-// Cô Thư: theo SOP tư vấn (IELTS 7.5, học trò cũ của thầy, CLB tiếng Anh riêng hơn 3 năm); ảnh Long gửi 16/11/2026.
+// Cô Thư: IELTS 7.5, CLB tiếng Anh riêng hơn 3 năm; ảnh Long gửi 16/11/2026.
+// Long 17/11/2026: KHÔNG ghi "học trò cũ của thầy" trên brochure, chỉ nêu IELTS 7.5 + câu lạc bộ riêng.
 export const coThu: Teacher = {
   id: 'co-thu',
   name: 'Cô Thư',
   badge: 'IELTS 7.5',
   photo: '/teachers/co-thu.jpg',
   photoAlt: 'Ảnh cô Thư',
-  points: ['Học trò cũ của thầy Long.', 'Có câu lạc bộ tiếng Anh riêng hơn 3 năm.'],
+  points: ['Có câu lạc bộ tiếng Anh riêng hơn 3 năm.'],
 }
 // Cô Châu: theo CV cô gửi (IELTS Academic 6.5: Reading 9.0, Listening 8.5; TESOL 120 giờ); ảnh Long gửi 16/11/2026.
 export const coChau: Teacher = {
@@ -128,11 +129,12 @@ export const coChau: Teacher = {
   ],
 }
 
-// Cô Tiên: theo kịch bản tư vấn 24/10/2026 (bản đủ, Long chọn 16/11/2026). Ảnh: chờ Long gửi (đang hiện chữ cái đầu).
+// Cô Tiên: theo kịch bản tư vấn 24/10/2026 (bản đủ, Long chọn 16/11/2026). Ảnh Long gửi 17/11/2026.
 export const coTien: Teacher = {
   id: 'co-tien',
   name: 'Cô Tiên',
   badge: 'Hơn 15 năm đứng lớp',
+  photo: '/teachers/co-tien.jpg',
   photoAlt: 'Ảnh cô Tiên',
   points: [
     'Tiếng Anh trình độ C1, giáo viên dạy giỏi cấp tỉnh Lâm Đồng năm học 2024-2025.',
