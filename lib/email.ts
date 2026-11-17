@@ -1,6 +1,7 @@
 import { Resend } from 'resend'
 import { getAccessTokenFor, oauthUserFromEnv } from './google-lite'
 import { TestSubmission } from './google-sheets'
+import { BROCHURE_BY_CLASS, BROCHURE_LIST, SITE } from './brochures/shared'
 
 function getResend() {
   return new Resend(process.env.RESEND_API_KEY!)
@@ -61,10 +62,17 @@ export interface EmailExtras {
   }
 }
 
+// 17/11/2026: khớp số liệu 3 brochure mới (Master Plan từng khoá).
 const CLASS_DESCRIPTIONS: Record<string, string> = {
-  'IELTS Nền Tảng (Trình độ 3-4)': '6 tháng · 2 học kỳ · ~46 buổi · 1.200.000đ/tháng',
-  'IELTS Căn Bản (Trình độ 4-5)': '10–12 tháng · 2 học kỳ · 1.200.000đ/tháng',
-  'Complete IELTS (Trình độ 5-6+)': '~1.5 năm · 5 giai đoạn · 1.500.000đ/tháng',
+  'IELTS Nền Tảng (Trình độ 3-4)': '6 tháng · 2 kỳ · 47 buổi · 1.200.000đ/tháng',
+  'IELTS Căn Bản (Trình độ 4-5)': 'Khoảng 6 tháng · 2 kỳ · 49 buổi · 1.200.000đ/tháng',
+  'Complete IELTS (Trình độ 5-6+)': 'Khoảng 1,5 năm · 138 buổi · 1.500.000đ/tháng',
+}
+
+/** Link brochure của lớp đề xuất (đầy đủ địa chỉ để dán Zalo). */
+function brochureUrl(suggestedClass: string): string {
+  const path = BROCHURE_BY_CLASS[suggestedClass]
+  return path ? `${SITE}${path}` : ''
 }
 
 // Mô tả ngắn dùng riêng cho tin nhắn Zalo: chỉ số buổi/tuần + học phí/tháng
@@ -82,9 +90,12 @@ function buildZaloMessage(data: TestSubmission, extras: EmailExtras): string {
     : ''
 
   // 26/10/2026: viết cho PHỤ HUYNH, gửi SAU cuộc gọi trả kết quả — đúng mẫu mục 5 Doc "SOP tư vấn học viên mới".
+  // 17/11/2026: thêm link brochure của đúng khoá (Long muốn phụ huynh thấy brochure mới ở mọi chỗ).
+  const brochure = brochureUrl(data.suggestedClass)
+  const brochureLine = brochure ? `\nGiới thiệu khoá học: ${brochure}` : ''
   return `Dạ thầy Long gửi anh/chị kết quả bài kiểm tra của con ${firstName} ạ.
 Con làm tốt: [điểm mạnh]. Cần cải thiện: [điểm yếu].
-Lớp: ${data.suggestedClass}, ${classDesc}, tài liệu 100.000đ đóng một lần.${notice}
+Lớp: ${data.suggestedClass}, ${classDesc}, tài liệu 100.000đ đóng một lần.${notice}${brochureLine}
 Học thử: [thứ, ngày, giờ] tại 289/26 Hồ Tùng Mậu, Bảo Lộc. Học xong 2 buổi anh/chị mới quyết, chưa phải đóng gì ạ.`
 }
 
@@ -173,6 +184,7 @@ ${speakingSection}
 === GỢI Ý XẾP LỚP ===
 ${data.suggestedClass}
 ${CLASS_DESCRIPTIONS[data.suggestedClass] || ''}
+${brochureUrl(data.suggestedClass) ? `Brochure: ${brochureUrl(data.suggestedClass)}` : ''}
 ${specialNoticeSection}
 ${zaloMsg}
 
@@ -202,7 +214,8 @@ export async function sendConfirmationToStudent(
     from: process.env.RESEND_FROM_EMAIL || 'LongIELTS <onboarding@resend.dev>',
     to: studentEmail,
     subject: 'Thầy Long đã nhận được bài test của bạn!',
-    text: `Chào ${studentName},\n\nThầy Long đã nhận được bài kiểm tra trình độ của bạn.\nTrong vòng 24 giờ, thầy sẽ liên hệ qua số điện thoại để sắp xếp buổi học thử.\n\nHẹn gặp bạn sớm!\nThầy Long — LongIELTS`,
+    // 17/11/2026: kèm link 3 brochure để học viên + phụ huynh xem trước trong lúc chờ thầy gọi.
+    text: `Chào ${studentName},\n\nThầy Long đã nhận được bài kiểm tra trình độ của bạn.\nTrong vòng 24 giờ, thầy sẽ liên hệ qua số điện thoại để sắp xếp buổi học thử.\n\nTrong lúc chờ, bạn và gia đình có thể xem giới thiệu các khoá học:\n${BROCHURE_LIST.map((b) => `- ${b.name}: ${SITE}${b.path}`).join('\n')}\n\nHẹn gặp bạn sớm!\nThầy Long — LongIELTS`,
   })
   if (error) {
     throw new Error(`Resend failed to send student confirmation: ${JSON.stringify(error)}`)

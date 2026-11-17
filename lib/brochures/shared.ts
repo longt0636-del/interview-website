@@ -145,3 +145,17 @@ export const coTien: Teacher = {
 
 /** Ba dòng của phiếu báo cáo tháng (minh hoạ, không số liệu). */
 export const REPORT_ROWS = ['Số buổi đi học', 'Tỉ lệ nộp bài', 'Điểm kiểm tra', 'Nhận xét của giáo viên']
+
+/** Lớp đề xuất sau bài test (chuỗi trong lib/test-logic.ts suggestClass) → trang brochure của khoá đó (Long 17/11/2026). */
+export const BROCHURE_BY_CLASS: Record<string, string> = {
+  'IELTS Nền Tảng (Trình độ 3-4)': '/khoa-hoc/nen-tang',
+  'IELTS Căn Bản (Trình độ 4-5)': '/khoa-hoc/can-ban',
+  'Complete IELTS (Trình độ 5-6+)': '/khoa-hoc/road-to-ielts',
+}
+
+/** Ba brochure, dùng ở chân trang chủ và thư gửi học viên. */
+export const BROCHURE_LIST = [
+  { name: 'Nền Tảng', path: '/khoa-hoc/nen-tang' },
+  { name: 'Căn Bản', path: '/khoa-hoc/can-ban' },
+  { name: 'Road to IELTS', path: '/khoa-hoc/road-to-ielts' },
+]

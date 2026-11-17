@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { loadStudentInfo } from '@/lib/test-draft'
 import { WarningIcon } from '@/components/ui/icons'
+import { BROCHURE_BY_CLASS } from '@/lib/brochures/shared'
 
 interface WritingFeedbackItem {
   wordCount: number
@@ -217,6 +218,22 @@ export default function ResultPage() {
           <p className="font-sans text-sm leading-relaxed" style={{ color: cs.bodyColor }}>
             {classDesc}
           </p>
+
+          {/* 17/11/2026 (Long): phụ huynh xem ngay brochure của đúng khoá được đề xuất; mở thẻ mới để không mất trang kết quả */}
+          {BROCHURE_BY_CLASS[result.suggestedClass] && (
+            <a
+              href={BROCHURE_BY_CLASS[result.suggestedClass]}
+              target="_blank"
+              rel="noopener"
+              className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full px-5 font-sans text-sm font-bold transition-transform duration-150 ease-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#EF9F27]/50"
+              style={{ background: 'var(--amber)', color: '#0B3D5C' }}
+            >
+              Xem brochure khoá này
+              <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M7 7h10v10M7 17 17 7" />
+              </svg>
+            </a>
+          )}
 
           {result.specialNotice && (
             <div className="mt-4 rounded-xl p-3" style={{ background: '#FEF3C7', border: '1px solid #EF9F27' }}>

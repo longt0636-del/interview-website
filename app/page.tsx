@@ -14,6 +14,7 @@ import {
   MapPinIcon,
 } from '@/components/ui/icons'
 import { cn } from '@/lib/utils'
+import { BROCHURE_LIST } from '@/lib/brochures/shared'
 
 const GOOGLE_FORM_URL =
   'https://docs.google.com/forms/d/1sZbzR4G_j-YYpKKBcQ5bNwHhfQEH9a0k9GaJW4FCtjk/viewform'
@@ -409,6 +410,22 @@ export default function HomePage() {
             © 2026 LongIELTS
           </p>
         </div>
+        {/* 17/11/2026 (Long): link 3 brochure khoá học ở chân trang, phụ huynh tìm thấy ở mọi lúc */}
+        <nav aria-label="Brochure khoá học" className="max-w-6xl mx-auto mt-3 flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-1 relative z-10">
+          <span className="font-sans text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--ink)', opacity: 0.55 }}>
+            Brochure khoá học
+          </span>
+          {BROCHURE_LIST.map((b) => (
+            <Link
+              key={b.path}
+              href={b.path}
+              className="inline-flex min-h-11 items-center font-sans text-sm font-semibold underline decoration-2 underline-offset-4 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#1D9E75]/45 rounded-md"
+              style={{ color: 'var(--navy)', textDecorationColor: 'var(--teal)' }}
+            >
+              {b.name}
+            </Link>
+          ))}
+        </nav>
       </footer>
 
     </main>
