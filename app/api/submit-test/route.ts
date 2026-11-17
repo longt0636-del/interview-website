@@ -94,7 +94,10 @@ export async function POST(req: NextRequest) {
     await saveTestResult(submission)
 
     // Send email to Long (skip only when Resend key is a placeholder)
-    if (canSendMail()) {
+    // Bài xếp lớp chính 3-4/4-5/5-6 (Long 17/11/2026): KHÔNG gửi thư ở đây — mỗi em chỉ 1 thư, do máy đề xuất xếp lớp
+    // (routine mỗi giờ 7h10–22h10) gửi sau khi so lịch rảnh và ghi ô P. Phần nâng cao / phần thêm vẫn gửi thư như cũ.
+    const routineSendsMail = [34, 45, 56].includes(Number(body.testLevel))
+    if (canSendMail() && !routineSendsMail) {
       const extras: EmailExtras = {
         examDate,
         targetBand,
