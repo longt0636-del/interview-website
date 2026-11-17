@@ -90,12 +90,15 @@ Học thử: [thứ, ngày, giờ] tại 289/26 Hồ Tùng Mậu, Bảo Lộc. H
 
 export async function sendResultToLong(data: TestSubmission, extras?: EmailExtras): Promise<void> {
   const testName =
+    data.testTypeLabel ? `Bài ${data.testTypeLabel} (mẫu 11/2026)` :
     data.testLevel === 1 ? 'Test 1 — Grammar & Vocabulary (Mất gốc/Cơ bản)' :
     data.testLevel === 2 ? 'Test 2 — Reading, Listening & Writing (Trung bình)' :
                            'Test 3 — Full IELTS (Kinh nghiệm / Deadline gấp)'
 
   const scoreSection =
-    data.testLevel === 1
+    data.detail
+      ? data.detail
+      : data.testLevel === 1
       ? `Grammar: ${data.grammarScore || 'Chưa điền'} / Vocabulary: ${data.vocabScore || 'Chưa điền'}`
       : data.testLevel === 2
       ? `Reading: ${data.readingScore || 'Chưa điền'} | Listening S1: ${data.listeningS1 || 'Chưa điền'} | S2: ${data.listeningS2 || 'Chưa điền'}`

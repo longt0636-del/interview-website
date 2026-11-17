@@ -9,6 +9,7 @@ import {
   getLevelFeedback,
   estimateGradeFromDOB,
 } from '@/lib/test-logic'
+import { goiYXepLop } from '@/lib/xep-lop/goi-y'
 
 // 26/10/2026: trên Cloudflare không có khoá Resend — email gửi bằng Gmail của thầy (xem sendMail trong lib/email.ts).
 // Trước đây chỉ kiểm khoá Resend nên từ lúc chuyển sang Cloudflare email kết quả bị bỏ qua.
@@ -34,8 +35,11 @@ export async function POST(req: NextRequest) {
     const ieltsStudied = studentRecord?.ieltsStudied || ''
     const gradeEstimate = estimateGradeFromDOB(dob)
 
+    // Bài xếp lớp theo cấp (17/11/2026): gợi ý tạm từ phần máy chấm; Viết/Nói thầy chấm sau.
+    const xepLop = body.xepLop ? goiYXepLop(body.xepLop) : null
+
     // Calculate suggested class from actual test scores + exam date
-    const suggestedClass = suggestClassFromScores(
+    const suggestedClass = xepLop ? xepLop.suggestedClass : suggestClassFromScores(
       {
         testLevel:      body.testLevel,
         grammarScore:   body.grammarScore,
@@ -49,10 +53,10 @@ export async function POST(req: NextRequest) {
     )
 
     // Special notice: weak Test-2 student placed in higher class due to deadline
-    const specialNotice = getClassSpecialNotice(body.testLevel, body.readingScore, examDate)
+    const specialNotice = xepLop ? null : getClassSpecialNotice(body.testLevel, body.readingScore, examDate)
 
     // Writing analysis (general — word count, vocab, grammar)
-    const task2Analysis = body.writingTask2
+    const task2Analysis = body.writingTask2 && !xepLop
       ? analyzeWriting(body.writingTask2, 250)
       : undefined
     const task1Analysis = body.writingTask1
@@ -60,7 +64,7 @@ export async function POST(req: NextRequest) {
       : undefined
 
     // General level feedback for the student result page
-    const levelFeedback = getLevelFeedback(body.testLevel, {
+    const levelFeedback = xepLop ? xepLop.feedback : getLevelFeedback(body.testLevel, {
       grammarScore:   body.grammarScore,
       vocabScore:     body.vocabScore,
       readingScore:   body.readingScore,
@@ -81,6 +85,8 @@ export async function POST(req: NextRequest) {
       writingTask2:   body.writingTask2,
       recordingUrl:   body.recordingUrl,
       suggestedClass,
+      testTypeLabel:  body.testTypeLabel || undefined,
+      detail:         xepLop?.detail,
       submittedAt:    new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
     }
 

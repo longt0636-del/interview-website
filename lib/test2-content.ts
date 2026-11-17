@@ -63,6 +63,9 @@ export interface McqItem {
   number: number
   prompt: string
   options: McqOption[]
+  /** Câu chọn tranh (bài xếp lớp 11/2026): ảnh 3 hình A/B/C hiện dưới câu hỏi, các nút chọn xếp thành 1 hàng. */
+  imageSrc?: string
+  imageAlt?: string
 }
 
 export interface McqGroup {
@@ -98,6 +101,8 @@ export interface TestSection {
   passageTitle?: string
   passageParagraphs?: string[]
   audioSrc?: string
+  /** Dòng nhắc trên thanh nghe (bài xếp lớp: 'bấm phát một lần'); bỏ trống = chữ cũ 'có thể tua lại nhiều lần'. */
+  audioHint?: string
   totalQuestions: number
   groups: QuestionGroup[]
 }

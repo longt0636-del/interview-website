@@ -55,6 +55,9 @@ export interface TestDraft {
   recordings: SavedRecording[]
   grammarScore: string
   vocabScore: string
+  /** Bài xếp lớp 11/2026: câu trả lời viết (theo mã ô) + link ghi âm (theo mã câu Nói). */
+  open?: Record<string, string>
+  speaking?: Record<string, string>
 }
 
 export function emptyDraft(testLevel: number): TestDraft {

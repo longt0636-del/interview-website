@@ -362,7 +362,7 @@ export function ReadingListeningExercise({
             <div className="shrink-0 p-4 border-b" style={{ background: '#fff', borderColor: '#E5E7EB' }}>
               <div className="max-w-4xl mx-auto">
                 <p className="text-sm font-semibold font-sans mb-2" style={{ color: 'var(--navy)' }}>
-                  <HeadphonesIcon className="w-4 h-4 inline-block align-[-2px] mr-1" />Nghe audio (có thể tua lại nhiều lần)
+                  <HeadphonesIcon className="w-4 h-4 inline-block align-[-2px] mr-1" />{section.audioHint ?? 'Nghe audio (có thể tua lại nhiều lần)'}
                 </p>
                 <audio controls src={section.audioSrc} className="w-full" />
               </div>

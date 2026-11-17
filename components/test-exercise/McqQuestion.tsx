@@ -31,7 +31,16 @@ export function McqQuestion({ items, answers, onChange, showResults, correctAnsw
                 {item.prompt}
               </p>
             </div>
-            <div className="pl-8 space-y-2">
+            {item.imageSrc && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={item.imageSrc}
+                alt={item.imageAlt || `Hình của câu ${item.number}`}
+                className="block w-full max-w-md h-auto rounded-lg border border-gray-200 mb-3 ml-0 sm:ml-8"
+                loading="lazy"
+              />
+            )}
+            <div className={item.imageSrc ? 'pl-0 sm:pl-8 grid grid-cols-3 gap-2 max-w-md' : 'pl-8 space-y-2'}>
               {item.options.map((opt) => {
                 const isSelected = selected === opt.letter
                 const isCorrectLetter = opt.letter === correctLetter
@@ -58,7 +67,7 @@ export function McqQuestion({ items, answers, onChange, showResults, correctAnsw
                     type="button"
                     disabled={showResults}
                     onClick={() => onChange(item.number, opt.letter)}
-                    className="w-full flex items-center gap-3 rounded-lg border-2 px-4 py-2.5 text-left text-base transition-colors disabled:cursor-default"
+                    className={`w-full flex items-center gap-3 rounded-lg border-2 px-4 py-2.5 text-base transition-colors disabled:cursor-default min-h-[44px] ${item.imageSrc ? 'justify-center text-center' : 'text-left'}`}
                     style={style}
                   >
                     {showBadge && (

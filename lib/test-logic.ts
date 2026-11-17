@@ -1,4 +1,6 @@
-export type TestLevel = 1 | 2 | 3
+// 1/2 = bài cũ (Oxford mất gốc / partial) — từ 17/11/2026 không còn tự giao.
+// 34/45/56 = bài xếp lớp theo cấp; 451 = phần nâng cao 4-5; 561 = phần thêm 5-6 (thầy gõ chỉ định rồi gửi link); 3 = Test full.
+export type TestLevel = 1 | 2 | 3 | 34 | 45 | 56 | 451 | 561
 
 export interface StudentRecord {
   name: string
@@ -98,15 +100,22 @@ function hasStudiedIeltsBefore(ieltsStudied: string): boolean {
 // Manual override typed by the teacher in the "BÀI TEST CHỈ ĐỊNH" column.
 // Accepts "1"/"2"/"3", "test 2", or the sheet labels ("test mất gốc" / "partial test" / "test full").
 export function parseTestOverride(raw: string): TestLevel | null {
-  const text = (raw || '').trim().toLowerCase()
+  const text = (raw || '').trim().toLowerCase().normalize('NFC')
   if (!text) return null
 
-  const digit = text.match(/\b([123])\b/)
-  if (digit) return parseInt(digit[1]) as TestLevel
-
-  if (text.includes('mất gốc')) return 1
-  if (text.includes('partial')) return 2
+  // Bài xếp lớp mới (17/11/2026) — xét trước, vì "3-4" có chữ số 3 trùng mã Test full.
+  const nangCao = text.includes('nâng cao') || text.includes('nang cao')
+  const them = text.includes('thêm') || text.includes('them')
+  if (/4\s*[-–.]?\s*5/.test(text)) return nangCao ? 451 : 45
+  if (/5\s*[-–.]?\s*6/.test(text)) return them ? 561 : 56
+  if (/3\s*[-–.]?\s*4/.test(text)) return 34
   if (text.includes('full')) return 3
+
+  // Chữ cũ của cột chỉ định: nay chuyển sang bài mới tương ứng (Long 17/11/2026: thay bài cũ).
+  if (text.includes('mất gốc')) return 34
+  if (text.includes('partial')) return 56
+  const digit = text.match(/\b([123])\b/)
+  if (digit) return ({ 1: 34, 2: 56, 3: 3 } as const)[parseInt(digit[1]) as 1 | 2 | 3]
 
   return null
 }
@@ -116,9 +125,9 @@ export function determineTestLevel(student: StudentRecord): TestLevel {
   const override = parseTestOverride(student.testOverride)
   if (override) return override
 
-  // Học sinh cấp 2 (lớp 6–9) luôn làm Test 1 (mất gốc), bất kể lịch thi hay trình độ tự khai
-  // — chỉ cột "BÀI TEST CHỈ ĐỊNH" ở trên mới ghi đè được luật này.
-  if (isSecondarySchoolStudent(student.dob)) return 1
+  // Học sinh cấp 2 (lớp 6–9) luôn làm bài xếp lớp Nền Tảng 3-4, bất kể lịch thi hay trình độ tự khai
+  // — chỉ cột "BÀI TEST CHỈ ĐỊNH" ở trên mới ghi đè được luật này. (Long 17/11/2026: cấp 2 không làm bài 5-6.)
+  if (isSecondarySchoolStudent(student.dob)) return 34
 
   const months = monthsUntilExam(student.examDate)
 
@@ -128,11 +137,14 @@ export function determineTestLevel(student: StudentRecord): TestLevel {
   // Also qualifies for Test 3: exam within 5–6 months AND already studied IELTS elsewhere
   if (months !== null && months <= 6 && hasStudiedIeltsBefore(student.ieltsStudied)) return 3
 
-  // Fallback: route by current level
+  // Theo trình độ tự khai + lớp (Long 17/11/2026):
+  //   mất gốc / cơ bản → 3-4 · khá / giỏi hoặc đang học lớp 11 → 5-6 · còn lại (trung bình, lớp 10/12, đi làm) → 4-5
   const lvl = student.level.toLowerCase()
-  if (lvl.includes('mất gốc') || lvl.includes('cơ bản')) return 1
+  if (lvl.includes('mất gốc') || lvl.includes('cơ bản')) return 34
+  if (lvl.includes('khá') || lvl.includes('giỏi')) return 56
+  if (estimateGradeNumberFromDOB(student.dob) === 11) return 56
 
-  return 2
+  return 45
 }
 
 export interface WritingAnalysis {
@@ -241,6 +253,9 @@ export function getClassSpecialNotice(
 
 export function suggestClass(testLevel: TestLevel, studentLevel: string): string {
   const lvl = studentLevel.toLowerCase()
+  if (testLevel === 34) return 'IELTS Nền Tảng (Trình độ 3-4)'
+  if (testLevel === 45 || testLevel === 451) return 'IELTS Căn Bản (Trình độ 4-5)'
+  if (testLevel === 56 || testLevel === 561) return 'Complete IELTS (Trình độ 5-6+)'
   if (testLevel === 1 || lvl.includes('mất gốc') || lvl.includes('cơ bản')) {
     return 'IELTS Nền Tảng (Trình độ 3-4)'
   }

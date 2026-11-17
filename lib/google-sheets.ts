@@ -80,6 +80,22 @@ const COL_LETTER = {
   LISTEN_S2:    'M',
   WRITING:      'N',
   SPEAKING:     'O',
+  XEP_LOP_DETAIL: 'T', // bài xếp lớp 11/2026: điểm từng phần + gợi ý tạm (cột cuối sổ, sau S "NHẬN XÉT CỦA THẦY")
+  XEP_LOP_EXTRA:  'U', // phần nâng cao 4-5 / phần thêm 5-6 — ghi riêng, không đè điểm phần chính
+}
+
+// Bài xếp lớp theo cấp (11/2026): 34/45/56 = bài chính, 451/561 = phần khó thầy gửi link sau.
+const XEP_LOP_MAIN = [34, 45, 56]
+const XEP_LOP_EXTRA = [451, 561]
+
+function joinWriting(data: TestSubmission): string {
+  return [data.writingTask1, data.writingTask2].filter(Boolean).join('\n---\n')
+}
+
+function extraCell(data: TestSubmission): string {
+  return [`${data.testTypeLabel || ''} · ${data.submittedAt}`, data.detail, joinWriting(data), data.recordingUrl]
+    .filter(Boolean)
+    .join('\n')
 }
 
 const TEST_TYPE_LABEL: Record<number, string> = {
@@ -103,6 +119,9 @@ export interface TestSubmission {
   recordingUrl?:  string
   suggestedClass: string
   submittedAt:    string
+  /** Bài xếp lớp: chữ ghi vào cột F (vd "xếp lớp 3-4") + chi tiết từng phần ghi vào cột T (phần khó: cột U). */
+  testTypeLabel?: string
+  detail?:        string
 }
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
@@ -116,6 +135,25 @@ function buildUpdateRanges(
   const t = quotedTab
   // Always write all score columns G-O so old data from a different test type gets cleared
   const writing = [data.writingTask1, data.writingTask2].filter(Boolean).join('\n---\n')
+  if (XEP_LOP_EXTRA.includes(data.testLevel)) {
+    return [{ range: `${t}!${COL_LETTER.XEP_LOP_EXTRA}${r}`, values: [[extraCell(data)]] }]
+  }
+  if (XEP_LOP_MAIN.includes(data.testLevel)) {
+    const c = COL_LETTER
+    return [
+      { range: `${t}!${c.TEST_TYPE}${r}`,      values: [[data.testTypeLabel || '']] },
+      { range: `${t}!${c.GRAMMAR}${r}`,        values: [[data.grammarScore || '']] },
+      { range: `${t}!${c.VOCAB}${r}`,          values: [[data.vocabScore || '']] },
+      { range: `${t}!${c.READING_FULL}${r}`,   values: [['']] },
+      { range: `${t}!${c.LISTEN_FULL}${r}`,    values: [['']] },
+      { range: `${t}!${c.READING_P}${r}`,      values: [[data.readingScore || '']] },
+      { range: `${t}!${c.LISTEN_S1}${r}`,      values: [[data.listeningScore || '']] },
+      { range: `${t}!${c.LISTEN_S2}${r}`,      values: [['']] },
+      { range: `${t}!${c.WRITING}${r}`,        values: [[writing]] },
+      { range: `${t}!${c.SPEAKING}${r}`,       values: [[data.recordingUrl || '']] },
+      { range: `${t}!${c.XEP_LOP_DETAIL}${r}`, values: [[data.detail || '']] },
+    ]
+  }
   return [
     { range: `${t}!${COL_LETTER.TEST_TYPE}${r}`,    values: [[TEST_TYPE_LABEL[data.testLevel] || '']] },
     { range: `${t}!${COL_LETTER.GRAMMAR}${r}`,      values: [[data.testLevel === 1 ? (data.grammarScore  || '') : '']] },
@@ -131,6 +169,17 @@ function buildUpdateRanges(
 }
 
 function buildNewRow(data: TestSubmission): string[] {
+  if (XEP_LOP_MAIN.includes(data.testLevel)) {
+    // A…T: điểm chính ở G/H/K/L, bài viết N, ghi âm O, chi tiết T
+    return ['', data.studentName, 'Đã làm test', '', data.submittedAt, data.testTypeLabel || '',
+      data.grammarScore || '', data.vocabScore || '', '', '', data.readingScore || '', data.listeningScore || '', '',
+      joinWriting(data), data.recordingUrl || '', '', '', '', '', data.detail || '']
+  }
+  if (XEP_LOP_EXTRA.includes(data.testLevel)) {
+    // chưa có dòng của em (hiếm): tạo dòng mới chỉ có tên + cột U
+    return ['', data.studentName, 'Đã làm test', '', data.submittedAt, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+      extraCell(data)]
+  }
   const label = TEST_TYPE_LABEL[data.testLevel] || ''
   const writing =
     data.testLevel === 3
@@ -265,11 +314,12 @@ export async function saveTestResult(data: TestSubmission): Promise<void> {
       requestBody: { valueInputOption: 'RAW', data: updateData },
     })
   } else {
+    const newRow = buildNewRow(data)
     await sheets.spreadsheets.values.append({
       spreadsheetId: SHEET_ID,
-      range: `${SCORES_TAB}!A:O`,
+      range: `${SCORES_TAB}!A:${String.fromCharCode(64 + Math.max(15, newRow.length))}`,
       valueInputOption: 'RAW',
-      requestBody: { values: [buildNewRow(data)] },
+      requestBody: { values: [newRow] },
     })
   }
 }
