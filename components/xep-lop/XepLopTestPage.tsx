@@ -147,7 +147,8 @@ export function XepLopTestPage({ test }: { test: XepLopTest }) {
         total: nums.length,
       }
     }
-    return { code, categories, groups }
+    const chuaLam = autoParts.filter((a) => !scores[a.section.id]).length
+    return { code, categories, groups, chuaLam }
   }
 
   function openText(): string {

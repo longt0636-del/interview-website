@@ -14,6 +14,8 @@ export interface XepLopPayload {
   categories: Partial<Record<'nghe' | 'doc' | 'ngu-phap' | 'tu-vung', Diem>>
   /** Điểm theo nhóm câu: 'san' (3-4: câu 1–5 + 16–19), 'thi-kho' (4-5: câu 18, 21, 23), 'm2' 'm3' 'm4' (phần nâng cao). */
   groups?: Record<string, Diem>
+  /** Số phần máy chấm em chưa làm (chưa bấm Hoàn thành) — > 0 thì gợi ý chỉ là tạm, trang kết quả không nhận xét trình độ. */
+  chuaLam?: number
 }
 
 export interface GoiY {
@@ -113,6 +115,13 @@ export function goiYXepLop(p: XepLopPayload): GoiY {
     feedback = { headline: 'Đã nhận phần thêm', detail: 'Thầy cô sẽ xem kết quả để chọn đúng lớp cho em.' }
   }
 
+  const thieu = p.chuaLam ?? 0
+  if (thieu > 0) {
+    // Bài nộp dở: không kết luận trình độ cho em từ phần chưa làm; lớp đề xuất = cấp của chính bài này.
+    lop = p.code === 34 ? NT : p.code === 56 || p.code === 561 ? CI : CB
+    note = `chưa làm ${thieu} phần máy chấm — gợi ý CHƯA CHẮC, thầy xem bài trước khi chốt`
+    feedback = { headline: 'Thầy cô đã nhận bài', detail: 'Bài của em chưa làm hết các phần. Thầy cô sẽ xem phần em đã làm rồi gọi tư vấn lớp phù hợp.' }
+  }
   const detail = `${parts.join(' · ')} | Gợi ý tạm: ${lop}${note ? ` — ${note}` : ''} | Viết, Nói, chép chính tả, sửa lỗi, dịch: thầy chấm`
   return { suggestedClass: lop, detail, feedback }
 }
