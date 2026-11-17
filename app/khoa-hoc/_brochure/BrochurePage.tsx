@@ -162,9 +162,9 @@ export function BrochurePage({ b }: { b: Brochure }) {
                 ))}
               </ul>
               {b.founderPhoto ? (
-                <figure className="photo photo--peak" data-in>
+                <figure className="photo photo--peak photo--portrait" data-in>
                   <div className="photo-frame" data-drift="26">
-                    <Image src={b.founderPhoto.src} alt={b.founderPhoto.alt} fill sizes="(min-width: 1024px) 480px, 92vw" className="photo-img" />
+                    <Image src={b.founderPhoto.src} alt={b.founderPhoto.alt} fill sizes="(min-width: 1024px) 340px, 78vw" className="photo-img" />
                   </div>
                   <figcaption>{b.founderPhoto.caption}</figcaption>
                 </figure>

@@ -85,7 +85,7 @@ export function BrochurePrint({ b }: { b: Brochure }) {
               ))}
             </ul>
             {b.founderPhoto ? (
-              <figure className="p-photo">
+              <figure className="p-photo p-photo--founder">
                 <img src={b.founderPhoto.src} alt={b.founderPhoto.alt} />
                 <figcaption>{b.founderPhoto.caption}</figcaption>
               </figure>

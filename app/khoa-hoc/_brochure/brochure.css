@@ -1900,3 +1900,14 @@
 .bro.motion-ready .ground-navy .nb.is-in {
   color: #0b3d5c;
 }
+
+/* Ảnh chân dung thầy Long (dọc 4:5, Long gửi 17/11/2026) */
+.bro .photo--portrait {
+  max-width: 340px;
+}
+.bro .photo--portrait .photo-frame {
+  aspect-ratio: 4 / 5;
+}
+.bro .photo--portrait .photo-img {
+  object-position: 50% 30%;
+}

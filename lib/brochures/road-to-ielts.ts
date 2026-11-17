@@ -46,10 +46,11 @@ export const roadToIelts: Brochure = {
     'Chứng chỉ TESOL 120 giờ (International TEFL & TESOL Training).',
     'Dạy IELTS từ 2018. Trực tiếp dạy và chấm bài các lớp Road to IELTS.',
   ],
+  // Ảnh chân dung Long gửi 17/11/2026 (thay ảnh đứng cạnh màn chiếu).
   founderPhoto: {
-    src: '/students/class-photo-3.jpg',
-    alt: 'Thầy Long đứng cạnh màn chiếu bảng điểm IELTS của mình',
-    caption: 'Thầy Long và bảng điểm IELTS trên màn chiếu.',
+    src: '/teachers/thay-long.jpg',
+    alt: 'Thầy Trần Nhật Long mặc vest xanh navy, giơ ngón tay cái',
+    caption: 'Thầy Trần Nhật Long, IELTS 8.5.',
   },
   teachers: [],
   sessionsTitle: 'Mỗi vòng 4 buổi, đủ 4 kỹ năng',
