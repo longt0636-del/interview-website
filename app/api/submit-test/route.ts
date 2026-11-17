@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { saveTestResult, TestSubmission, findStudent } from '@/lib/google-sheets'
+import { saveTestResult, TestSubmission, findStudent, listClassesForLevel } from '@/lib/google-sheets'
 import { sendResultToLong, EmailExtras } from '@/lib/email'
 import { oauthUserFromEnv } from '@/lib/google-lite'
 import {
@@ -107,6 +107,11 @@ export async function POST(req: NextRequest) {
         schedule,
         gradeEstimate,
         specialNotice,
+        classOptions: xepLop
+          ? await listClassesForLevel(
+              suggestedClass.includes('3-4') ? '3-4' : suggestedClass.includes('5-6') ? '5-6' : '4-5'
+            )
+          : undefined,
         missingParts: Array.isArray(body.missingParts) ? body.missingParts : [],
         writingFeedback: {
           task1: task1Analysis,

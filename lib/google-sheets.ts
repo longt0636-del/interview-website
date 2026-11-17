@@ -261,6 +261,30 @@ export async function findStudent(name: string, phone: string): Promise<StudentR
   return partialMatch ? makeRecord(partialMatch.row, partialMatch.index, overrideCol, scheduleCol) : null
 }
 
+// Class Tracker (sổ theo dõi lớp của thầy): A tên lớp · B cấp (3-4/4-5/5-6) · D buổi hiện tại · E kỳ · G ngày học
+// (vd "3, 5" = thứ 3, thứ 5) · H giờ học · I trạng thái · K giáo viên · L sĩ số. Bài xếp lớp 17/11/2026 dùng để liệt kê
+// mọi lớp cùng cấp đang mở trong thư báo kết quả. Đọc lỗi thì trả rỗng — thư vẫn gửi, chỉ thiếu danh sách lớp.
+const CLASS_TRACKER_ID = '1aVwDrT3hEH_rVCf06wUpH4s4yJwCJTnTM_3rzWnMrmk'
+
+export async function listClassesForLevel(level: '3-4' | '4-5' | '5-6'): Promise<string[]> {
+  try {
+    const res = await getSheets().spreadsheets.values.get({ spreadsheetId: CLASS_TRACKER_ID, range: 'A1:L60' })
+    const rows: string[][] = res.data.values || []
+    return rows
+      .slice(1)
+      .filter((r) => (r[1] || '').trim() === level && !/nghỉ|đóng|kết thúc/i.test(r[8] || ''))
+      .map((r) => {
+        const days = (r[6] || '').split(/[,;]/).map((d) => d.trim()).filter(Boolean)
+          .map((d) => (/^cn$/i.test(d) ? 'CN' : `T${d}`)).join(' + ')
+        const progress = [r[4], r[3] ? `buổi ${r[3]}` : ''].filter(Boolean).join(' ')
+        return `${r[0]}: ${days || '?'} ${r[7] || ''} · ${r[10] || '?'} · ${r[11] || '?'} em${progress ? ` · đang ${progress}` : ''}`
+      })
+  } catch (err) {
+    console.error('listClassesForLevel:', err)
+    return []
+  }
+}
+
 export async function scheduleCallback(
   studentName: string,
   callbackDate: string,

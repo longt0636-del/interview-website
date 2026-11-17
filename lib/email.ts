@@ -54,6 +54,8 @@ export interface EmailExtras {
   schedule?: string
   gradeEstimate?: string
   specialNotice?: string | null
+  /** Bài xếp lớp 11/2026: các lớp cùng cấp đang mở (từ Class Tracker), mỗi phần tử 1 dòng. */
+  classOptions?: string[]
   /** Các phần học viên chưa làm khi bấm nộp — rỗng nghĩa là nộp đầy đủ. */
   missingParts?: string[]
   writingFeedback?: {
@@ -163,7 +165,18 @@ Lịch trong tuần: ${extras.schedule || 'Chưa điền'}`
     ? `\n⚠️ BÀI NỘP CHƯA ĐẦY ĐỦ — học viên chủ động nộp phần đã làm.\nChưa làm: ${extras!.missingParts!.join(', ')}\n`
     : ''
 
-  const zaloMsg = extras ? `\n\n${'─'.repeat(50)}\n📱 TIN ZALO GỬI PHỤ HUYNH (gửi SAU khi gọi trả kết quả, điền chỗ [ ]):\n${'─'.repeat(50)}\n\n${buildZaloMessage(data, extras)}\n${'─'.repeat(50)}` : ''
+  // Bài xếp lớp (17/11/2026): liệt kê MỌI lớp cùng cấp đang mở kèm lịch, đặt cạnh lịch rảnh của em để thầy so nhanh.
+  // Lớp cụ thể do máy đề xuất (routine mỗi giờ) chốt vào ô P và gửi thư riêng.
+  const classOptionsSection = extras?.classOptions?.length
+    ? [
+        '',
+        `Các lớp cùng cấp đang mở (Class Tracker) — lịch rảnh của em: ${extras.schedule || 'chưa điền'}`,
+        ...extras.classOptions.map((c) => `• ${c}`),
+        'Máy đề xuất xếp lớp (mỗi giờ 7h10–22h10) sẽ chọn lớp hợp lịch, ghi ô P sổ Khảo sát test và gửi thầy thư chốt lớp.',
+      ].join('\n')
+    : ''
+
+  const zaloMsg = extras ?`\n\n${'─'.repeat(50)}\n📱 TIN ZALO GỬI PHỤ HUYNH (gửi SAU khi gọi trả kết quả, điền chỗ [ ]):\n${'─'.repeat(50)}\n\n${buildZaloMessage(data, extras)}\n${'─'.repeat(50)}` : ''
   const fromAddress = process.env.RESEND_FROM_EMAIL || 'LongIELTS <onboarding@resend.dev>'
 
   const body = `
@@ -184,6 +197,7 @@ ${speakingSection}
 === GỢI Ý XẾP LỚP ===
 ${data.suggestedClass}
 ${CLASS_DESCRIPTIONS[data.suggestedClass] || ''}
+${classOptionsSection}
 ${brochureUrl(data.suggestedClass) ? `Brochure: ${brochureUrl(data.suggestedClass)}` : ''}
 ${specialNoticeSection}
 ${zaloMsg}
