@@ -80,8 +80,38 @@ const COL_LETTER = {
   LISTEN_S2:    'M',
   WRITING:      'N',
   SPEAKING:     'O',
-  XEP_LOP_DETAIL: 'T', // bài xếp lớp 11/2026: điểm từng phần + gợi ý tạm (cột cuối sổ, sau S "NHẬN XÉT CỦA THẦY")
-  XEP_LOP_EXTRA:  'U', // phần nâng cao 4-5 / phần thêm 5-6 — ghi riêng, không đè điểm phần chính
+}
+
+// Hai cột của bài xếp lớp 11/2026 (chi tiết từng phần + gợi ý tạm; phần nâng cao 4-5 / phần thêm 5-6) TÌM THEO TÊN TIÊU ĐỀ ở
+// hàng 1: 23/11/2026 thầy dời hai cột này sang ngay trước "ĐÁNH GIÁ ĐẦU VÀO" (P, Q) và bỏ hai cột R/S cũ, nên không cố định chữ cột.
+// Không đọc được tiêu đề → dùng vị trí sau ngày 23/11 (P, Q).
+const XEP_LOP_HEADER = {
+  DETAIL: /chi\s*tiết\s*bài\s*xếp\s*lớp/i,
+  EXTRA:  /phần\s*nâng\s*cao/i,
+}
+const XEP_LOP_DEFAULT = { detail: 15, extra: 16 } // 0-based: P, Q
+
+interface XepLopCols { detail: number; extra: number }
+
+function colLetter(index0: number): string {
+  let n = index0 + 1
+  let s = ''
+  while (n > 0) {
+    const m = (n - 1) % 26
+    s = String.fromCharCode(65 + m) + s
+    n = Math.floor((n - 1) / 26)
+  }
+  return s
+}
+
+function findXepLopCols(header: string[] | undefined): XepLopCols {
+  const find = (re: RegExp) => (header || []).findIndex((h) => re.test((h || '').normalize('NFC').replace(/\s+/g, ' ')))
+  const detail = find(XEP_LOP_HEADER.DETAIL)
+  const extra = find(XEP_LOP_HEADER.EXTRA)
+  return {
+    detail: detail >= 0 ? detail : XEP_LOP_DEFAULT.detail,
+    extra: extra >= 0 ? extra : XEP_LOP_DEFAULT.extra,
+  }
 }
 
 // Bài xếp lớp theo cấp (11/2026): 34/45/56 = bài chính, 451/561 = phần khó thầy gửi link sau.
@@ -119,7 +149,7 @@ export interface TestSubmission {
   recordingUrl?:  string
   suggestedClass: string
   submittedAt:    string
-  /** Bài xếp lớp: chữ ghi vào cột F (vd "xếp lớp 3-4") + chi tiết từng phần ghi vào cột T (phần khó: cột U). */
+  /** Bài xếp lớp: chữ ghi vào cột F (vd "xếp lớp 3-4") + chi tiết từng phần ghi vào cột "CHI TIẾT BÀI XẾP LỚP MỚI" (phần khó: cột "PHẦN NÂNG CAO"). */
   testTypeLabel?: string
   detail?:        string
 }
@@ -129,14 +159,15 @@ export interface TestSubmission {
 function buildUpdateRanges(
   data: TestSubmission,
   row: number,
-  quotedTab: string
+  quotedTab: string,
+  xl: XepLopCols = XEP_LOP_DEFAULT,
 ): Array<{ range: string; values: string[][] }> {
   const r = row
   const t = quotedTab
   // Always write all score columns G-O so old data from a different test type gets cleared
   const writing = [data.writingTask1, data.writingTask2].filter(Boolean).join('\n---\n')
   if (XEP_LOP_EXTRA.includes(data.testLevel)) {
-    return [{ range: `${t}!${COL_LETTER.XEP_LOP_EXTRA}${r}`, values: [[extraCell(data)]] }]
+    return [{ range: `${t}!${colLetter(xl.extra)}${r}`, values: [[extraCell(data)]] }]
   }
   if (XEP_LOP_MAIN.includes(data.testLevel)) {
     const c = COL_LETTER
@@ -151,7 +182,7 @@ function buildUpdateRanges(
       { range: `${t}!${c.LISTEN_S2}${r}`,      values: [['']] },
       { range: `${t}!${c.WRITING}${r}`,        values: [[writing]] },
       { range: `${t}!${c.SPEAKING}${r}`,       values: [[data.recordingUrl || '']] },
-      { range: `${t}!${c.XEP_LOP_DETAIL}${r}`, values: [[data.detail || '']] },
+      { range: `${t}!${colLetter(xl.detail)}${r}`, values: [[data.detail || '']] },
     ]
   }
   return [
@@ -168,17 +199,23 @@ function buildUpdateRanges(
   ]
 }
 
-function buildNewRow(data: TestSubmission): string[] {
+// Đặt một giá trị vào đúng cột (0-based) của dòng mới, chèn ô trống ở giữa.
+function putAt(row: string[], index0: number, value: string): string[] {
+  while (row.length < index0) row.push('')
+  row[index0] = value
+  return row
+}
+
+function buildNewRow(data: TestSubmission, xl: XepLopCols = XEP_LOP_DEFAULT): string[] {
   if (XEP_LOP_MAIN.includes(data.testLevel)) {
-    // A…T: điểm chính ở G/H/K/L, bài viết N, ghi âm O, chi tiết T
-    return ['', data.studentName, 'Đã làm test', '', data.submittedAt, data.testTypeLabel || '',
+    // A…O: điểm chính ở G/H/K/L, bài viết N, ghi âm O; chi tiết vào cột "CHI TIẾT BÀI XẾP LỚP MỚI"
+    return putAt(['', data.studentName, 'Đã làm test', '', data.submittedAt, data.testTypeLabel || '',
       data.grammarScore || '', data.vocabScore || '', '', '', data.readingScore || '', data.listeningScore || '', '',
-      joinWriting(data), data.recordingUrl || '', '', '', '', '', data.detail || '']
+      joinWriting(data), data.recordingUrl || ''], xl.detail, data.detail || '')
   }
   if (XEP_LOP_EXTRA.includes(data.testLevel)) {
-    // chưa có dòng của em (hiếm): tạo dòng mới chỉ có tên + cột U
-    return ['', data.studentName, 'Đã làm test', '', data.submittedAt, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
-      extraCell(data)]
+    // chưa có dòng của em (hiếm): tạo dòng mới chỉ có tên + cột "PHẦN NÂNG CAO"
+    return putAt(['', data.studentName, 'Đã làm test', '', data.submittedAt], xl.extra, extraCell(data))
   }
   const label = TEST_TYPE_LABEL[data.testLevel] || ''
   const writing =
@@ -331,17 +368,28 @@ export async function saveTestResult(data: TestSubmission): Promise<void> {
 
   const targetRow = findNameRow(existing.data.values || [], data.studentName)
 
+  // Chỉ bài xếp lớp mới cần biết vị trí 2 cột chi tiết / phần nâng cao (đọc hàng tiêu đề).
+  let xl: XepLopCols = XEP_LOP_DEFAULT
+  if (XEP_LOP_MAIN.includes(data.testLevel) || XEP_LOP_EXTRA.includes(data.testLevel)) {
+    try {
+      const head = await sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: `${SCORES_TAB}!1:1` })
+      xl = findXepLopCols(head.data.values?.[0])
+    } catch (err) {
+      console.error('saveTestResult: đọc tiêu đề lỗi, dùng vị trí mặc định P/Q:', err)
+    }
+  }
+
   if (targetRow) {
-    const updateData = buildUpdateRanges(data, targetRow, SCORES_TAB)
+    const updateData = buildUpdateRanges(data, targetRow, SCORES_TAB, xl)
     await sheets.spreadsheets.values.batchUpdate({
       spreadsheetId: SHEET_ID,
       requestBody: { valueInputOption: 'RAW', data: updateData },
     })
   } else {
-    const newRow = buildNewRow(data)
+    const newRow = buildNewRow(data, xl)
     await sheets.spreadsheets.values.append({
       spreadsheetId: SHEET_ID,
-      range: `${SCORES_TAB}!A:${String.fromCharCode(64 + Math.max(15, newRow.length))}`,
+      range: `${SCORES_TAB}!A:${colLetter(Math.max(15, newRow.length) - 1)}`,
       valueInputOption: 'RAW',
       requestBody: { values: [newRow] },
     })
